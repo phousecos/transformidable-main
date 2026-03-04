@@ -2,23 +2,25 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { articles } from "@/lib/mock-data";
+import { getArticleBySlug, getArticleSlugs } from "@/lib/payload";
 
-export function generateStaticParams() {
-  return articles
-    .filter((a) => a.status === "published")
-    .map((a) => ({ slug: a.slug }));
+export async function generateStaticParams() {
+  const slugs = await getArticleSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
-export function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  return params.then(({ slug }) => {
-    const article = articles.find((a) => a.slug === slug);
-    if (!article) return { title: "Not Found — Transformidable" };
-    return {
-      title: `${article.title} — Transformidable`,
-      description: article.seoDescription ?? article.excerpt,
-    };
-  });
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const article = await getArticleBySlug(slug);
+  if (!article) return { title: "Not Found — Transformidable" };
+  return {
+    title: `${article.title} — Transformidable`,
+    description: article.seoDescription ?? article.excerpt,
+  };
 }
 
 export default async function ArticlePage({
@@ -27,9 +29,7 @@ export default async function ArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = articles.find(
-    (a) => a.slug === slug && a.status === "published"
-  );
+  const article = await getArticleBySlug(slug);
   if (!article) notFound();
 
   const date = new Date(article.publishDate).toLocaleDateString("en-US", {
@@ -89,15 +89,20 @@ export default async function ArticlePage({
         {/* Article body */}
         <div className="bg-parchment">
           <div className="mx-auto max-w-3xl px-6 py-16 md:py-20">
-            <div className="prose prose-lg max-w-none font-light text-obsidian/80">
-              <p className="text-xl leading-relaxed">
-                {article.excerpt}
-              </p>
-              <p className="mt-8 text-base text-obsidian/40 italic">
-                Full article content will be rendered from the CMS rich text
-                field when connected to the Payload API.
-              </p>
-            </div>
+            {article.body ? (
+              <div
+                className="prose prose-lg max-w-none font-light text-obsidian/80"
+                dangerouslySetInnerHTML={{ __html: article.body }}
+              />
+            ) : (
+              <div className="prose prose-lg max-w-none font-light text-obsidian/80">
+                <p className="text-xl leading-relaxed">{article.excerpt}</p>
+                <p className="mt-8 text-base text-obsidian/40 italic">
+                  Full article content will be rendered from the CMS rich text
+                  field when connected to the Payload API.
+                </p>
+              </div>
+            )}
 
             {/* Back to articles */}
             <div className="mt-16 border-t border-obsidian/10 pt-8">

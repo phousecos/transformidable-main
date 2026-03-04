@@ -2,21 +2,30 @@ import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleList from "@/components/ArticleList";
-import { articles, brandPillars } from "@/lib/mock-data";
+import {
+  getArticles,
+  getBrandPillars,
+  getBrandPillarBySlug,
+  getBrandPillarSlugs,
+} from "@/lib/payload";
 
-export function generateStaticParams() {
-  return brandPillars.map((bp) => ({ slug: bp.slug }));
+export async function generateStaticParams() {
+  const slugs = await getBrandPillarSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
-export function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  return params.then(({ slug }) => {
-    const pillar = brandPillars.find((bp) => bp.slug === slug);
-    if (!pillar) return { title: "Not Found — Transformidable" };
-    return {
-      title: `${pillar.name} — Transformidable`,
-      description: pillar.contentFocus,
-    };
-  });
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const pillar = await getBrandPillarBySlug(slug);
+  if (!pillar) return { title: "Not Found — Transformidable" };
+  return {
+    title: `${pillar.name} — Transformidable`,
+    description: pillar.contentFocus,
+  };
 }
 
 export default async function BrandPage({
@@ -25,10 +34,12 @@ export default async function BrandPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const pillar = brandPillars.find((bp) => bp.slug === slug);
+  const [pillar, published, allPillars] = await Promise.all([
+    getBrandPillarBySlug(slug),
+    getArticles(),
+    getBrandPillars(),
+  ]);
   if (!pillar) notFound();
-
-  const published = articles.filter((a) => a.status === "published");
 
   return (
     <>
@@ -49,7 +60,7 @@ export default async function BrandPage({
           <div className="mt-10">
             <ArticleList
               articles={published}
-              brandPillars={brandPillars}
+              brandPillars={allPillars}
               initialFilter={pillar.slug}
             />
           </div>

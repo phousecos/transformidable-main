@@ -1,74 +1,15 @@
-// Mock data structured to match Payload CMS REST API response shapes.
-// When switching to live data, replace these imports with fetch calls to
-// https://cms.transformidable.media/api/<collection>
+// Mock data used for local development and as a fallback when the Payload CMS
+// is unreachable. Structured to match the Payload REST API response shapes.
 
-export interface BrandPillar {
-  id: string;
-  name: string;
-  slug: string;
-  mappedDomain: string;
-  contentFocus: string;
-}
+export type {
+  BrandPillar,
+  Author,
+  MediaItem,
+  Article,
+  PodcastEpisode,
+} from "./types";
 
-export interface Author {
-  id: string;
-  name: string;
-  bio: string;
-  headshot: MediaItem | null;
-  role: string;
-  associatedBrand: BrandPillar | null;
-  type: "staff" | "guestContributor" | "podcastGuest";
-  socialLinks: { platform: string; url: string }[];
-  isActive: boolean;
-}
-
-export interface MediaItem {
-  id: string;
-  alt: string;
-  caption?: string;
-  url: string;
-  sizes: {
-    thumbnail: { url: string; width: number; height: number };
-    card: { url: string; width: number; height: number };
-    hero: { url: string; width: number; height: number };
-  };
-}
-
-export interface Article {
-  id: string;
-  title: string;
-  slug: string;
-  body: string; // Rich text — simplified to string for mock
-  excerpt: string;
-  author: Author;
-  publishDate: string;
-  featuredImage: MediaItem | null;
-  brandPillars: BrandPillar[];
-  syndicateTo: string[];
-  status: "draft" | "review" | "scheduled" | "published";
-  seoTitle?: string;
-  seoDescription?: string;
-  isMemberOnly: boolean;
-  readTime?: string;
-}
-
-export interface PodcastEpisode {
-  id: string;
-  title: string;
-  slug: string;
-  episodeNumber: number;
-  season: number;
-  description: string;
-  audioUrl: string;
-  transcript: string;
-  showNotes: string;
-  guest: Author | null;
-  publishDate: string;
-  featuredImage: MediaItem | null;
-  brandPillars: BrandPillar[];
-  syndicateTo: string[];
-  status: "draft" | "review" | "scheduled" | "published";
-}
+import type { BrandPillar, Author, Article, PodcastEpisode } from "./types";
 
 // ---------------------------------------------------------------------------
 // Brand Pillars

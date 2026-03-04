@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Article, BrandPillar } from "@/lib/mock-data";
+import type { Article, BrandPillar } from "@/lib/types";
 
 interface ArticleListProps {
   articles: Article[];

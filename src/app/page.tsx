@@ -4,23 +4,25 @@ import ArticleGrid from "@/components/ArticleGrid";
 import PodcastSection from "@/components/PodcastSection";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import Footer from "@/components/Footer";
-import { articles, podcastEpisodes } from "@/lib/mock-data";
+import { getArticles, getPodcastEpisodes } from "@/lib/payload";
 
-export default function Home() {
-  // Featured article is the most recent
-  const featuredArticle = articles[0];
-  // Grid articles are the next 4
-  const gridArticles = articles.slice(1, 5);
-  // Latest podcast episode
-  const latestEpisode = podcastEpisodes[0];
+export default async function Home() {
+  const [allArticles, episodes] = await Promise.all([
+    getArticles({ limit: 5 }),
+    getPodcastEpisodes({ limit: 1 }),
+  ]);
+
+  const featuredArticle = allArticles[0];
+  const gridArticles = allArticles.slice(1, 5);
+  const latestEpisode = episodes[0];
 
   return (
     <>
       <Navbar />
       <main>
-        <Hero article={featuredArticle} />
+        {featuredArticle && <Hero article={featuredArticle} />}
         <ArticleGrid articles={gridArticles} />
-        <PodcastSection episode={latestEpisode} />
+        {latestEpisode && <PodcastSection episode={latestEpisode} />}
         <NewsletterSignup />
       </main>
       <Footer />
