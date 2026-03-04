@@ -90,9 +90,14 @@ export default function AboutPage() {
                 Transformidable Media
               </strong>{" "}
               is a publication of{" "}
-              <strong className="text-parchment font-semibold">
+              <Link
+                href="https://phousecos.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-parchment font-semibold underline decoration-gold/40 underline-offset-2 transition-colors hover:text-gold"
+              >
                 Powerhouse Industries
-              </strong>
+              </Link>
               , bringing together the brands and perspectives of The Holding
               Company, Unlimited Powerhouse, and Vetters Group — along
               with those of our partners at Velorum Software, including AgentPMO
