@@ -16,8 +16,8 @@ export default function Navbar() {
           <Image
             src="/primary.png"
             alt="Transformidable"
-            width={200}
-            height={40}
+            width={250}
+            height={50}
             priority
           />
         </Link>
