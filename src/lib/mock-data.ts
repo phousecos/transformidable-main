@@ -97,7 +97,7 @@ export const brandPillars: BrandPillar[] = [
     slug: "talent-development",
     mappedDomain: "prept.com",
     contentFocus:
-      "Hiring strategy, career development, and interview best practices.",
+      "AI-driven interview practice for interviews and work conversations.",
   },
   {
     id: "bp-4",
