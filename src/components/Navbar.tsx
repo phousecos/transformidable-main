@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Search from "./Search";
 
 export default function Navbar() {
@@ -11,14 +12,14 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-obsidian">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo + Wordmark */}
-        <Link href="/" className="flex items-center gap-3">
-          {/* T logomark placeholder */}
-          <span className="flex h-10 w-10 items-center justify-center rounded bg-oxblood text-xl font-bold text-parchment font-serif">
-            T
-          </span>
-          <span className="text-xl font-semibold text-parchment font-serif">
-            Transformidable
-          </span>
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/primary.png"
+            alt="Transformidable"
+            width={200}
+            height={40}
+            priority
+          />
         </Link>
 
         {/* Desktop navigation */}
