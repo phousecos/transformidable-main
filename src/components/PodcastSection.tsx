@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
-import { PodcastEpisode } from "@/lib/mock-data";
+import type { PodcastEpisode } from "@/lib/types";
 
 interface PodcastSectionProps {
   episode: PodcastEpisode;

@@ -3,27 +3,25 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PodcastSection from "@/components/PodcastSection";
-import { podcastEpisodes } from "@/lib/mock-data";
+import { getEpisodeBySlug, getEpisodeSlugs } from "@/lib/payload";
 
-export function generateStaticParams() {
-  return podcastEpisodes
-    .filter((ep) => ep.status === "published")
-    .map((ep) => ({ slug: ep.slug }));
+export async function generateStaticParams() {
+  const slugs = await getEpisodeSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  return params.then(({ slug }) => {
-    const ep = podcastEpisodes.find((e) => e.slug === slug);
-    if (!ep) return { title: "Not Found — Transformidable" };
-    return {
-      title: `${ep.title} — Transformidable Podcast`,
-      description: ep.description,
-    };
-  });
+  const { slug } = await params;
+  const ep = await getEpisodeBySlug(slug);
+  if (!ep) return { title: "Not Found — Transformidable" };
+  return {
+    title: `${ep.title} — Transformidable Podcast`,
+    description: ep.description,
+  };
 }
 
 export default async function EpisodePage({
@@ -32,9 +30,7 @@ export default async function EpisodePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const episode = podcastEpisodes.find(
-    (ep) => ep.slug === slug && ep.status === "published"
-  );
+  const episode = await getEpisodeBySlug(slug);
   if (!episode) notFound();
 
   const date = new Date(episode.publishDate).toLocaleDateString("en-US", {
@@ -78,9 +74,10 @@ export default async function EpisodePage({
               Show Notes
             </h2>
             {episode.showNotes ? (
-              <div className="prose prose-lg mt-4 max-w-none font-light text-obsidian/80">
-                <p>{episode.showNotes}</p>
-              </div>
+              <div
+                className="prose prose-lg mt-4 max-w-none font-light text-obsidian/80"
+                dangerouslySetInnerHTML={{ __html: episode.showNotes }}
+              />
             ) : (
               <p className="mt-4 text-base text-obsidian/40 italic">
                 Show notes will appear here once published from the CMS.
@@ -94,9 +91,10 @@ export default async function EpisodePage({
               Transcript
             </h2>
             {episode.transcript ? (
-              <div className="prose prose-lg mt-4 max-w-none font-light text-obsidian/80">
-                <p>{episode.transcript}</p>
-              </div>
+              <div
+                className="prose prose-lg mt-4 max-w-none font-light text-obsidian/80"
+                dangerouslySetInnerHTML={{ __html: episode.transcript }}
+              />
             ) : (
               <p className="mt-4 text-base text-obsidian/40 italic">
                 Transcript will be available shortly after publication.

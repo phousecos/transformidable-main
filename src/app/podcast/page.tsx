@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PodcastList from "@/components/PodcastList";
-import { podcastEpisodes } from "@/lib/mock-data";
+import { getPodcastEpisodes } from "@/lib/payload";
 
 export const metadata: Metadata = {
   title: "Podcast — Transformidable",
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
     "Transformidable Conversations: interviews and insights for technology leaders driving enterprise transformation.",
 };
 
-export default function PodcastPage() {
-  const published = podcastEpisodes.filter((ep) => ep.status === "published");
+export default async function PodcastPage() {
+  const published = await getPodcastEpisodes();
 
   return (
     <>

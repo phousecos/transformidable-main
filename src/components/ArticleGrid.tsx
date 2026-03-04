@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Article } from "@/lib/mock-data";
+import type { Article } from "@/lib/types";
 
 interface ArticleGridProps {
   articles: Article[];

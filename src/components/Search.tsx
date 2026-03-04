@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { articles, podcastEpisodes, Article, PodcastEpisode } from "@/lib/mock-data";
+import type { Article, PodcastEpisode } from "@/lib/types";
 
 type SearchResult =
   | { type: "article"; item: Article }
@@ -12,7 +12,9 @@ export default function Search() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (open && inputRef.current) {
@@ -20,7 +22,7 @@ export default function Search() {
     }
   }, [open]);
 
-  // Close on Escape
+  // Close on Escape, toggle on ⌘K
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -33,37 +35,50 @@ export default function Search() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  function handleSearch(value: string) {
+  const handleSearch = useCallback(async (value: string) => {
     setQuery(value);
+
+    // Cancel any in-flight request
+    abortRef.current?.abort();
+
     if (!value.trim()) {
       setResults([]);
+      setLoading(false);
       return;
     }
 
-    const q = value.toLowerCase();
-    const matchedArticles: SearchResult[] = articles
-      .filter(
-        (a) =>
-          a.status === "published" &&
-          (a.title.toLowerCase().includes(q) ||
-            a.excerpt.toLowerCase().includes(q) ||
-            a.author.name.toLowerCase().includes(q) ||
-            a.brandPillars.some((bp) => bp.name.toLowerCase().includes(q)))
-      )
-      .map((item) => ({ type: "article" as const, item }));
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setLoading(true);
 
-    const matchedEpisodes: SearchResult[] = podcastEpisodes
-      .filter(
-        (ep) =>
-          ep.status === "published" &&
-          (ep.title.toLowerCase().includes(q) ||
-            ep.description.toLowerCase().includes(q) ||
-            ep.guest?.name.toLowerCase().includes(q))
-      )
-      .map((item) => ({ type: "episode" as const, item }));
+    try {
+      const res = await fetch(
+        `/api/search?q=${encodeURIComponent(value.trim())}`,
+        { signal: controller.signal },
+      );
+      if (!res.ok) throw new Error("Search failed");
 
-    setResults([...matchedArticles, ...matchedEpisodes]);
-  }
+      const data: { articles: Article[]; episodes: PodcastEpisode[] } =
+        await res.json();
+
+      const merged: SearchResult[] = [
+        ...data.articles.map(
+          (item) => ({ type: "article" as const, item }),
+        ),
+        ...data.episodes.map(
+          (item) => ({ type: "episode" as const, item }),
+        ),
+      ];
+
+      setResults(merged);
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") {
+        setResults([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return (
     <>
@@ -127,7 +142,13 @@ export default function Search() {
 
             {/* Results */}
             <div className="max-h-80 overflow-y-auto p-2">
-              {query && results.length === 0 && (
+              {loading && (
+                <p className="px-4 py-8 text-center text-sm text-parchment/40">
+                  Searching&hellip;
+                </p>
+              )}
+
+              {!loading && query && results.length === 0 && (
                 <p className="px-4 py-8 text-center text-sm text-parchment/40">
                   No results for &ldquo;{query}&rdquo;
                 </p>
@@ -158,7 +179,7 @@ export default function Search() {
                 </Link>
               ))}
 
-              {!query && (
+              {!loading && !query && (
                 <p className="px-4 py-8 text-center text-sm text-parchment/30">
                   Start typing to search&hellip;
                 </p>

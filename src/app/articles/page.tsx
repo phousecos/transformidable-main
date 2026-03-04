@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ArticleList from "@/components/ArticleList";
-import { articles, brandPillars } from "@/lib/mock-data";
+import { getArticles, getBrandPillars } from "@/lib/payload";
 
 export const metadata: Metadata = {
   title: "Articles — Transformidable",
@@ -10,8 +10,11 @@ export const metadata: Metadata = {
     "Executive insight on technology strategy, project execution, talent development, and leadership.",
 };
 
-export default function ArticlesPage() {
-  const published = articles.filter((a) => a.status === "published");
+export default async function ArticlesPage() {
+  const [published, pillars] = await Promise.all([
+    getArticles(),
+    getBrandPillars(),
+  ]);
 
   return (
     <>
@@ -27,7 +30,7 @@ export default function ArticlesPage() {
           </p>
 
           <div className="mt-10">
-            <ArticleList articles={published} brandPillars={brandPillars} />
+            <ArticleList articles={published} brandPillars={pillars} />
           </div>
         </div>
       </main>
