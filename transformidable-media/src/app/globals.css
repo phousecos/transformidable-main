@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-oxblood: #6B1428;
+  --color-obsidian: #0F1923;
+  --color-gold: #D4AF7A;
+  --color-parchment: #F7F2E8;
+
+  --font-serif: "Source Serif 4 Variable", "Georgia", serif;
+  --font-sans: "DM Sans Variable", "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background: var(--color-parchment);
+  color: var(--color-obsidian);
+  font-family: var(--font-sans);
+}
+
+html {
+  scroll-behavior: smooth;
+}
