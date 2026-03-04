@@ -57,8 +57,8 @@ export default function PodcastSection({ episode }: PodcastSectionProps) {
   const progress = duration ? (currentTime / duration) * 100 : 0;
 
   return (
-    <section className="bg-obsidian">
-      <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
+    <section className="w-full bg-obsidian">
+      <div className="mx-auto max-w-5xl px-6 py-20 md:py-28">
         {/* Section label */}
         <span className="mb-6 inline-block text-xs font-medium uppercase tracking-[0.2em] text-gold">
           Latest Episode
