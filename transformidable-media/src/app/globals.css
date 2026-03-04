@@ -1,10 +1,28 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Source Serif 4 Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 900;
+  src: url("/fonts/source-serif-4-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
+@font-face {
+  font-family: "DM Sans Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 1000;
+  src: url("/fonts/dm-sans-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
 @theme inline {
-  --color-oxblood: #6B1428;
-  --color-obsidian: #0F1923;
-  --color-gold: #D4AF7A;
-  --color-parchment: #F7F2E8;
+  --color-oxblood: #6b1428;
+  --color-obsidian: #0f1923;
+  --color-gold: #d4af7a;
+  --color-parchment: #f7f2e8;
 
   --font-serif: "Source Serif 4 Variable", "Georgia", serif;
   --font-sans: "DM Sans Variable", "Helvetica Neue", Arial, sans-serif;
