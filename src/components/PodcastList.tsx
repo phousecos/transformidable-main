@@ -73,8 +73,8 @@ export default function PodcastList({
 
   return (
     <div className="mt-10 flex flex-col gap-10 lg:flex-row">
-      {/* Episodes — main column */}
-      <div className="min-w-0 flex-1">
+      {/* Episodes — main column (2/3 width) */}
+      <div className="min-w-0 lg:w-2/3">
         {visibleGroups.length === 0 && (
           <p className="mt-6 text-center text-obsidian/40">
             No episodes for this period.
@@ -96,7 +96,7 @@ export default function PodcastList({
       </div>
 
       {/* Month/year filter — right sidebar */}
-      <aside className="shrink-0 lg:w-48 lg:pl-8 lg:border-l lg:border-obsidian/10">
+      <aside className="shrink-0 lg:w-1/3 lg:pl-10 lg:border-l lg:border-obsidian/10">
         <h3 className="text-xs font-medium uppercase tracking-[0.2em] text-obsidian/40">
           Filter by date
         </h3>
