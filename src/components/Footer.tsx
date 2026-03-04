@@ -18,8 +18,8 @@ export default function Footer() {
             <Image
               src="/primary.png"
               alt="Transformidable"
-              width={160}
-              height={32}
+              width={200}
+              height={40}
             />
           </Link>
 
