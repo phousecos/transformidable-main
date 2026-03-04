@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 export const metadata: Metadata = {
   title: "About — Transformidable",
   description:
-    "Transformidable Media is a publication of Powerhouse Industries, presenting the brands of The Holding Company, Unlimited Powerhouse, Vedder's Group, and our partners at Velorum Software.",
+    "Transformidable Media is a publication of Powerhouse Industries, presenting the brands of The Holding Company, Unlimited Powerhouse, and Vetters Group, along with our partners at Velorum Software.",
 };
 
 const brandFamilies = [
@@ -40,14 +40,14 @@ const brandFamilies = [
     ],
   },
   {
-    parent: "Vedder\u2019s Group",
+    parent: "Vetters Group",
     description:
-      "Advisory and holding interests focused on executive talent and organizational excellence.",
+      "Background checks and screening services that improve HR processes and staffing decisions.",
     brands: [
       {
-        name: "Vedder\u2019s Group",
-        domain: "veddersgroup.com",
-        focus: "Executive advisory, holding company strategy, and organizational governance.",
+        name: "Vetters Group",
+        domain: "vettersgroup.com",
+        focus: "Background checks, HR process improvement, and staffing verification.",
       },
     ],
   },
@@ -65,7 +65,7 @@ const partnerBrands = [
       {
         name: "Prept",
         domain: "prept.com",
-        focus: "Hiring strategy, career development, and interview best practices.",
+        focus: "AI-driven interview practice for interviews and work conversations.",
       },
     ],
   },
@@ -94,7 +94,7 @@ export default function AboutPage() {
                 Powerhouse Industries
               </strong>
               , bringing together the brands and perspectives of The Holding
-              Company, Unlimited Powerhouse, and Vedder&rsquo;s Group — along
+              Company, Unlimited Powerhouse, and Vetters Group — along
               with those of our partners at Velorum Software, including AgentPMO
               and Prept.
             </p>
