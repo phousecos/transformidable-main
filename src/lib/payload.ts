@@ -434,7 +434,7 @@ function mapCmsIssue(raw: any): Issue | null {
       author: firstArticle?.author ?? { id: "", name: "", bio: "", headshot: null, role: "", type: "staff", socialLinks: [], isActive: true },
     },
     articles,
-    status: raw.status === "sent" ? "published" : raw.status === "published" ? "published" : "draft",
+    status: raw.status === "published" ? "published" : "draft",
     tagline: raw.tagline,
   };
 }
@@ -490,32 +490,16 @@ export async function getLatestIssue(): Promise<Issue | null> {
 
   return withFallback(
     async () => {
-      // The newsletter-issues status workflow is: draft → scheduled → sent.
-      // "sent" means published/live. We also accept "published" in case the
-      // CMS uses that label instead.
-      let data = await payloadFetch<Record<string, unknown>>(
+      // Newsletter-issues status workflow: draft → scheduled → published
+      const data = await payloadFetch<Record<string, unknown>>(
         "/newsletter-issues",
         {
-          "where[status][equals]": "sent",
+          "where[status][equals]": "published",
           sort: "-issueDate",
           depth: "2",
           limit: "1",
         },
       );
-
-      // Some CMS configs may use "published" instead of "sent"
-      if (!data.docs.length) {
-        console.log("[CMS] No newsletter-issues with status 'sent', trying 'published'");
-        data = await payloadFetch<Record<string, unknown>>(
-          "/newsletter-issues",
-          {
-            "where[status][equals]": "published",
-            sort: "-issueDate",
-            depth: "2",
-            limit: "1",
-          },
-        );
-      }
 
       console.log("[CMS] newsletter-issues docs count:", data.docs.length);
 
