@@ -383,10 +383,22 @@ export async function getBrandPillarSlugs(): Promise<string[]> {
 function mapCmsIssue(raw: any): Issue | null {
   if (!raw) return null;
 
+  // Log the raw CMS response keys so we can debug field mapping in production
+  console.log("[CMS] newsletter-issue raw keys:", Object.keys(raw));
+  console.log("[CMS] newsletter-issue status:", raw.status);
+
   // CMS uses "featuredArticles" (relationship → Articles), our type uses "articles"
-  const featuredArticles: Article[] = Array.isArray(raw.featuredArticles)
+  const rawArticles = Array.isArray(raw.featuredArticles)
     ? raw.featuredArticles
     : [];
+
+  // Normalize each article (converts Lexical body to HTML)
+  const featuredArticles: Article[] = rawArticles.map(normalizeArticle);
+
+  // Log article data so we can verify excerpts come through
+  featuredArticles.forEach((a, i) => {
+    console.log(`[CMS] article[${i}]: title="${a.title}", excerpt="${(a.excerpt ?? "").slice(0, 60)}..."`);
+  });
 
   const articles: Issue["articles"] = featuredArticles.map((article, idx) => ({
     article,
@@ -396,17 +408,9 @@ function mapCmsIssue(raw: any): Issue | null {
 
   // CMS uses "editorsNote" (richText), our type uses "editorsLetter"
   const editorsNote = raw.editorsNote;
-  // editorsNote may be a string or richText object; normalize to string
-  const editorsBody =
-    typeof editorsNote === "string"
-      ? editorsNote
-      : editorsNote?.root?.children
-        ?.map((node: { children?: { text?: string }[] }) =>
-          node.children?.map((c) => c.text ?? "").join("") ?? "",
-        )
-        .join("\n\n") ?? "";
+  const editorsBody = normalizeBody(editorsNote);
 
-  // Build a headline from the first article title if not present
+  // Use fields from the CMS record if present, fall back to derived values
   const firstArticle = featuredArticles[0];
   const headline = raw.headline ?? firstArticle?.title ?? "";
   const subheadline =
@@ -462,11 +466,14 @@ export async function getLatestIssue(): Promise<Issue | null> {
       });
       if (!data.docs.length) return null;
 
+      console.log("[CMS] composedFromArticles: got", data.docs.length, "articles from /articles");
+
       // Use mock issue metadata as shell, but fill with real CMS articles
       const mockIssue = await mockFallback();
       if (!mockIssue) return null;
 
-      const articles: Issue["articles"] = data.docs.map((article, idx) => ({
+      const normalizedDocs = data.docs.map(normalizeArticle);
+      const articles: Issue["articles"] = normalizedDocs.map((article, idx) => ({
         article,
         position: idx + 1,
         isFlagship: idx === 0,
@@ -483,8 +490,9 @@ export async function getLatestIssue(): Promise<Issue | null> {
 
   return withFallback(
     async () => {
-      // CMS collection is "newsletter-issues" with status "sent" for published
-      const data = await payloadFetch<Record<string, unknown>>(
+      // Try "sent" status first (the published state in CMS),
+      // then fall back to fetching any status if no "sent" issues exist.
+      let data = await payloadFetch<Record<string, unknown>>(
         "/newsletter-issues",
         {
           "where[status][equals]": "sent",
@@ -493,9 +501,25 @@ export async function getLatestIssue(): Promise<Issue | null> {
           limit: "1",
         },
       );
+
+      if (!data.docs.length) {
+        console.log("[CMS] No newsletter-issues with status 'sent', trying without status filter");
+        data = await payloadFetch<Record<string, unknown>>(
+          "/newsletter-issues",
+          {
+            sort: "-issueDate",
+            depth: "2",
+            limit: "1",
+          },
+        );
+      }
+
+      console.log("[CMS] newsletter-issues docs count:", data.docs.length);
+
       const raw = data.docs[0];
       const issue = mapCmsIssue(raw);
       if (!issue || !issue.articles.length) {
+        console.log("[CMS] mapCmsIssue returned no usable issue, trying direct articles fetch");
         // Newsletter-issues didn't work — try composing from CMS articles
         const composed = await composedFromArticles();
         if (composed) return composed;
