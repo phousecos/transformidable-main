@@ -22,8 +22,9 @@ export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
     { id: "this-issue", label: "THIS ISSUE" },
   ];
 
-  const flagship = issue.articles.find((a) => a.isFlagship);
-  const remaining = issue.articles
+  const articles = issue.articles ?? [];
+  const flagship = articles.find((a) => a.isFlagship);
+  const remaining = articles
     .filter((a) => !a.isFlagship)
     .sort((a, b) => a.position - b.position);
 
@@ -124,7 +125,7 @@ function CoverView({
   issueNumber: string;
   onNavigate: (tab: Tab) => void;
 }) {
-  const flagship = issue.articles.find((a) => a.isFlagship);
+  const coverArticles = issue.articles ?? [];
 
   return (
     <section className="bg-obsidian">
@@ -150,7 +151,7 @@ function CoverView({
 
         {/* Headline */}
         <h1 className="mt-6 max-w-xl font-serif text-3xl font-bold italic leading-tight text-parchment md:mt-8 md:text-[40px] md:leading-[1.15]">
-          {issue.headline.split("\n").map((line, i) => (
+          {(issue.headline ?? "").split("\n").map((line, i) => (
             <span key={i}>
               {line}
               {i === 0 && <br />}
@@ -172,7 +173,7 @@ function CoverView({
         </p>
 
         <div className="mt-6 space-y-4">
-          {issue.articles
+          {coverArticles
             .sort((a, b) => a.position - b.position)
             .map((ia) => (
               <div key={ia.article.id} className="flex items-baseline gap-4">
@@ -226,7 +227,18 @@ function CoverView({
 // ---------------------------------------------------------------------------
 
 function EditorsLetterView({ issue }: { issue: Issue }) {
-  const { editorsLetter } = issue;
+  const editorsLetter = issue.editorsLetter;
+  if (!editorsLetter?.body) {
+    return (
+      <section className="bg-parchment">
+        <div className="mx-auto max-w-3xl px-6 py-16">
+          <p className="font-serif text-lg text-obsidian/60 italic">
+            Editor&apos;s letter coming soon.
+          </p>
+        </div>
+      </section>
+    );
+  }
   const paragraphs = editorsLetter.body.split("\n\n");
 
   // Find the blockquote paragraph (italic emphasis)
@@ -275,14 +287,18 @@ function EditorsLetterView({ issue }: { issue: Issue }) {
         <div className="mt-12 h-px w-full bg-obsidian/10 md:mt-16" />
 
         {/* Author attribution */}
-        <div className="mt-8">
-          <p className="text-sm font-semibold text-obsidian">
-            — {editorsLetter.author.name}
-          </p>
-          <p className="mt-1 text-xs text-obsidian/50">
-            {editorsLetter.author.role}
-          </p>
-        </div>
+        {editorsLetter.author && (
+          <div className="mt-8">
+            <p className="text-sm font-semibold text-obsidian">
+              — {editorsLetter.author.name}
+            </p>
+            {editorsLetter.author.role && (
+              <p className="mt-1 text-xs text-obsidian/50">
+                {editorsLetter.author.role}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -301,8 +317,8 @@ function ThisIssueView({
   flagship: Issue["articles"][number] | undefined;
   remaining: Issue["articles"];
 }) {
-  const categoryLabel = (pillars: { name: string }[]) => {
-    return pillars[0]?.name?.toUpperCase() ?? "EXECUTIVE LEADERSHIP";
+  const categoryLabel = (pillars?: { name: string }[]) => {
+    return pillars?.[0]?.name?.toUpperCase() ?? "EXECUTIVE LEADERSHIP";
   };
 
   return (
@@ -327,7 +343,7 @@ function ThisIssueView({
 
         {/* Headline */}
         <h2 className="mt-8 max-w-lg font-serif text-2xl font-bold italic leading-snug text-obsidian md:mt-10 md:text-[32px] md:leading-tight">
-          {issue.headline.split("\n").map((line, i) => (
+          {(issue.headline ?? "").split("\n").map((line, i) => (
             <span key={i}>
               {line}
               {i === 0 && <br />}
@@ -336,7 +352,7 @@ function ThisIssueView({
         </h2>
 
         <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.25em] text-obsidian/50 md:text-xs">
-          {issue.subheadline.replace("This issue — ", "This issue — ").toUpperCase()}
+          {(issue.subheadline ?? "").replace("This issue — ", "This issue — ").toUpperCase()}
         </p>
 
         {/* In This Issue */}

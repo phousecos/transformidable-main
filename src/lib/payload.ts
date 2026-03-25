@@ -293,6 +293,18 @@ export async function getBrandPillarSlugs(): Promise<string[]> {
 // ---------------------------------------------------------------------------
 
 export async function getLatestIssue(): Promise<Issue | null> {
+  const mockFallback = async () => {
+    const { issues } = await getMockData();
+    const published = issues
+      .filter((i) => i.status === "published")
+      .sort(
+        (a, b) =>
+          new Date(b.publishDate).getTime() -
+          new Date(a.publishDate).getTime(),
+      );
+    return published[0] ?? null;
+  };
+
   return withFallback(
     async () => {
       const data = await payloadFetch<Issue>("/issues", {
@@ -301,25 +313,30 @@ export async function getLatestIssue(): Promise<Issue | null> {
         depth: "2",
         limit: "1",
       });
-      return data.docs[0] ?? null;
+      // If CMS returns empty docs (collection exists but no published
+      // issues yet, or field mismatch), fall back to mock data so the
+      // homepage still renders content.
+      if (!data.docs.length) {
+        console.warn("[payload] CMS returned no published issues, using mock data");
+        return mockFallback();
+      }
+      return data.docs[0];
     },
-    async () => {
-      const { issues } = await getMockData();
-      const published = issues
-        .filter((i) => i.status === "published")
-        .sort(
-          (a, b) =>
-            new Date(b.publishDate).getTime() -
-            new Date(a.publishDate).getTime(),
-        );
-      return published[0] ?? null;
-    },
+    mockFallback,
   );
 }
 
 export async function getIssueBySlug(
   slug: string,
 ): Promise<Issue | null> {
+  const mockFallback = async () => {
+    const { issues } = await getMockData();
+    return (
+      issues.find((i) => i.slug === slug && i.status === "published") ??
+      null
+    );
+  };
+
   return withFallback(
     async () => {
       const data = await payloadFetch<Issue>("/issues", {
@@ -328,15 +345,12 @@ export async function getIssueBySlug(
         depth: "2",
         limit: "1",
       });
-      return data.docs[0] ?? null;
+      if (!data.docs.length) {
+        return mockFallback();
+      }
+      return data.docs[0];
     },
-    async () => {
-      const { issues } = await getMockData();
-      return (
-        issues.find((i) => i.slug === slug && i.status === "published") ??
-        null
-      );
-    },
+    mockFallback,
   );
 }
 

@@ -47,7 +47,7 @@ export default async function ArticlePage({
         <div className="bg-obsidian">
           <div className="mx-auto max-w-3xl px-6 pb-16 pt-20 md:pt-28 md:pb-20">
             <div className="flex flex-wrap gap-2">
-              {article.brandPillars.map((bp) => (
+              {article.brandPillars?.map((bp) => (
                 <Link
                   key={bp.id}
                   href={`/brand/${bp.slug}`}
@@ -67,9 +67,11 @@ export default async function ArticlePage({
             </p>
 
             <div className="mt-8 flex items-center gap-3">
-              <span className="text-xs font-medium uppercase tracking-[0.15em] text-gold">
-                {article.author.name}
-              </span>
+              {article.author?.name && (
+                <span className="text-xs font-medium uppercase tracking-[0.15em] text-gold">
+                  {article.author.name}
+                </span>
+              )}
               <span className="text-gold/40">·</span>
               <span className="text-xs font-medium uppercase tracking-[0.15em] text-gold/70">
                 {date}

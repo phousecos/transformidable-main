@@ -20,7 +20,7 @@ export default function ArticleGrid({ articles }: ArticleGridProps) {
 }
 
 function ArticleCard({ article }: { article: Article }) {
-  const pillarLabel = article.brandPillars[0]?.name ?? "Executive Leadership";
+  const pillarLabel = article.brandPillars?.[0]?.name ?? "Executive Leadership";
 
   return (
     <article className="group border-b border-obsidian/10 pb-8">
@@ -47,9 +47,11 @@ function ArticleCard({ article }: { article: Article }) {
 
       {/* Author + read time */}
       <div className="mt-4 flex items-center gap-3">
-        <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-gold">
-          {article.author.name}
-        </span>
+        {article.author?.name && (
+          <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-gold">
+            {article.author.name}
+          </span>
+        )}
         {article.readTime && (
           <>
             <span className="text-obsidian/20">·</span>
