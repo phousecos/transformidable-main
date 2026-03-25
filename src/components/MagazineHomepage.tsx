@@ -17,8 +17,10 @@ interface MagazineHomepageProps {
 export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
   const [view, setView] = useState<View>({ kind: "cover" });
 
-  const volumeLabel = `VOL. ${"I".repeat(issue.volume)} · ISSUE ${String(issue.issueNumber).padStart(2, "0")}`;
-  const issueNumberFormatted = String(issue.issueNumber).padStart(2, "0");
+  const vol = issue.volume ?? 1;
+  const num = issue.issueNumber ?? 1;
+  const volumeLabel = `VOL. ${"I".repeat(vol)} · ISSUE ${String(num).padStart(2, "0")}`;
+  const issueNumberFormatted = String(num).padStart(2, "0");
 
   const articles = issue.articles ?? [];
   const flagship = articles.find((a) => a.isFlagship);
@@ -179,7 +181,7 @@ function CoverView({
       <div className="mx-auto max-w-5xl px-6 pb-16 pt-12 md:pt-16 md:pb-20">
         {/* Volume / Season / Publisher */}
         <p className="mb-10 text-[10px] font-medium uppercase tracking-[0.25em] text-parchment/50 md:mb-14 md:text-xs">
-          Volume {issue.volume} &nbsp;·&nbsp; {issue.season} &nbsp;·&nbsp;
+          {issue.volume != null && <>Volume {issue.volume} &nbsp;·&nbsp;</>}{issue.season}{issue.season && <> &nbsp;·&nbsp;</>}
           <a href="https://phousecos.com" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gold">Powerhouse Industries</a>
         </p>
 
@@ -360,11 +362,16 @@ function ThisIssueView({
             TRANSFORMIDABLE
           </p>
           <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-obsidian/40 md:text-xs">
-            Issue {String(issue.issueNumber).padStart(2, "0")} · Volume{" "}
-            {issue.volume}
-            <br className="sm:hidden" />
-            <span className="hidden sm:inline"> · </span>
-            {issue.season}
+            {issue.issueNumber != null && <>Issue {String(issue.issueNumber).padStart(2, "0")}</>}
+            {issue.issueNumber != null && issue.volume != null && <> · </>}
+            {issue.volume != null && <>Volume {issue.volume}</>}
+            {issue.season && (
+              <>
+                <br className="sm:hidden" />
+                <span className="hidden sm:inline"> · </span>
+                {issue.season}
+              </>
+            )}
           </p>
         </div>
 
@@ -562,7 +569,11 @@ function ArticleReadView({
 
           {/* Issue context line */}
           <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-parchment/30 md:text-xs">
-            Issue {String(issue.issueNumber).padStart(2, "0")} · Volume {issue.volume} · {issue.season}
+            {[
+              issue.issueNumber != null ? `Issue ${String(issue.issueNumber).padStart(2, "0")}` : null,
+              issue.volume != null ? `Volume ${issue.volume}` : null,
+              issue.season || null,
+            ].filter(Boolean).join(" · ")}
           </p>
         </div>
       </div>

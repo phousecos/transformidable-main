@@ -382,70 +382,99 @@ export async function getBrandPillarSlugs(): Promise<string[]> {
 // Issues
 // ---------------------------------------------------------------------------
 
-// The CMS "newsletter-issues" collection has a different schema than the
-// frontend Issue type. This helper maps the CMS response to our Issue shape.
+// ---------------------------------------------------------------------------
+// CMS → Issue mapping
+// ---------------------------------------------------------------------------
+// The CMS "newsletter-issues" collection fields map to our Issue type.
+// Every field should be populated in the CMS. This function warns loudly
+// when required fields are missing so editors can fix them in the dashboard.
+
+// Required CMS fields for a complete newsletter-issue:
+// - volume (number)         — e.g. 1
+// - issueNumber (number)    — e.g. 1, 2, 3…
+// - slug (text)             — e.g. "vol-1-issue-01"
+// - title (text)            — short title for SEO/metadata
+// - headline (text)         — display headline (can include \n for line breaks)
+// - subheadline (text)      — deck under the headline
+// - season (text)           — e.g. "Spring 2026"
+// - issueDate (date)        — publication date
+// - editorsNote (richText)  — editor's letter body (Lexical JSON)
+// - editorsNoteAuthor (relationship → Authors) — who wrote the letter
+// - featuredArticles (relationship → Articles) — ordered list of articles
+// - tagline (text)          — optional footer tagline
+// - status (select)         — draft | scheduled | published
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapCmsIssue(raw: any): Issue | null {
   if (!raw) return null;
 
-  // Log the raw CMS response keys so we can debug field mapping in production
-  console.log("[CMS] newsletter-issue raw keys:", Object.keys(raw));
-  console.log("[CMS] newsletter-issue status:", raw.status);
+  // Warn about missing required fields so they can be filled in the CMS
+  const requiredFields = [
+    "volume", "issueNumber", "slug", "title", "headline",
+    "subheadline", "season", "issueDate", "editorsNote", "featuredArticles",
+  ];
+  const missing = requiredFields.filter((f) => raw[f] == null || raw[f] === "");
+  if (missing.length) {
+    console.warn(
+      `[CMS] newsletter-issue "${raw.title ?? raw.id}" is missing fields: ${missing.join(", ")}. ` +
+      "Please fill these in the CMS dashboard."
+    );
+  }
 
   // CMS uses "featuredArticles" (relationship → Articles), our type uses "articles"
   const rawArticles = Array.isArray(raw.featuredArticles)
     ? raw.featuredArticles
     : [];
 
-  // Normalize each article (converts Lexical body to HTML)
   const featuredArticles: Article[] = rawArticles.map(normalizeArticle);
-
-  // Log article data so we can verify excerpts come through
-  featuredArticles.forEach((a, i) => {
-    console.log(`[CMS] article[${i}]: title="${a.title}", excerpt="${(a.excerpt ?? "").slice(0, 60)}..."`);
-  });
 
   const articles: Issue["articles"] = featuredArticles.map((article, idx) => ({
     article,
     position: idx + 1,
-    isFlagship: idx === 0, // first article is flagship
+    isFlagship: idx === 0,
   }));
 
   // CMS uses "editorsNote" (richText), our type uses "editorsLetter"
-  const editorsNote = raw.editorsNote;
-  const editorsBody = normalizeBody(editorsNote);
+  const editorsBody = normalizeBody(raw.editorsNote);
 
-  // Use fields from the CMS record if present, fall back to derived values
-  const firstArticle = featuredArticles[0];
-  const headline = raw.headline ?? firstArticle?.title ?? "";
-  const subheadline =
-    raw.subheadline ??
-    (firstArticle
-      ? `This issue — ${firstArticle.title}`
-      : "");
+  // Resolve the editor's letter author: try the dedicated relationship field,
+  // then fall back to the first article's author (common in early issues).
+  const editorsAuthor = raw.editorsNoteAuthor ?? featuredArticles[0]?.author ?? null;
 
   return {
     id: raw.id,
-    volume: raw.volume ?? 1,
-    issueNumber: raw.issueNumber ?? 1,
-    slug: raw.slug ?? `vol-1-issue-${String(raw.issueNumber ?? 1).padStart(2, "0")}`,
-    title: raw.title ?? headline,
-    headline,
-    subheadline,
+    volume: raw.volume ?? null,
+    issueNumber: raw.issueNumber ?? null,
+    slug: raw.slug ?? "",
+    title: raw.title ?? raw.headline ?? "",
+    headline: raw.headline ?? "",
+    subheadline: raw.subheadline ?? "",
     season: raw.season ?? "",
-    publishDate: raw.issueDate ?? raw.publishDate ?? new Date().toISOString(),
+    publishDate: raw.issueDate ?? raw.publishDate ?? "",
     editorsLetter: {
       body: editorsBody,
-      author: firstArticle?.author ?? { id: "", name: "", bio: "", headshot: null, role: "", type: "staff", socialLinks: [], isActive: true },
+      author: editorsAuthor,
     },
     articles,
     status: raw.status === "published" ? "published" : "draft",
-    tagline: raw.tagline,
+    tagline: raw.tagline ?? "",
   };
 }
 
 export async function getLatestIssue(): Promise<Issue | null> {
-  const mockFallback = async () => {
+  // Mock data is ONLY used when PAYLOAD_CMS_URL is not set (local dev).
+  // In production, all issue data must come from the CMS.
+  const devFallback = async () => {
+    if (cmsAvailable()) {
+      // CMS is configured but returned nothing — this is a real problem,
+      // not something to paper over with mock data.
+      console.error(
+        "[CMS] No published newsletter-issues found. " +
+        "Create an issue in the CMS with status 'published' and at least one featured article."
+      );
+      return null;
+    }
+    console.warn("[payload] No PAYLOAD_CMS_URL set — using mock data for local dev");
     const { issues } = await getMockData();
     const published = issues
       .filter((i) => i.status === "published")
@@ -457,45 +486,8 @@ export async function getLatestIssue(): Promise<Issue | null> {
     return published[0] ?? null;
   };
 
-  // Middle-tier fallback: CMS is available but newsletter-issues endpoint
-  // doesn't return usable data. Fetch articles directly from /articles and
-  // compose an Issue using mock metadata + real CMS article data.
-  const composedFromArticles = async (): Promise<Issue | null> => {
-    if (!cmsAvailable()) return null;
-    try {
-      const data = await payloadFetch<Article>("/articles", {
-        "where[status][equals]": "published",
-        sort: "-publishDate",
-        depth: "2",
-        limit: "10",
-      });
-      if (!data.docs.length) return null;
-
-      console.log("[CMS] composedFromArticles: got", data.docs.length, "articles from /articles");
-
-      // Use mock issue metadata as shell, but fill with real CMS articles
-      const mockIssue = await mockFallback();
-      if (!mockIssue) return null;
-
-      const normalizedDocs = data.docs.map(normalizeArticle);
-      const articles: Issue["articles"] = normalizedDocs.map((article, idx) => ({
-        article,
-        position: idx + 1,
-        isFlagship: idx === 0,
-      }));
-
-      return {
-        ...mockIssue,
-        articles,
-      };
-    } catch {
-      return null;
-    }
-  };
-
   return withFallback(
     async () => {
-      // Newsletter-issues status workflow: draft → scheduled → published
       const data = await payloadFetch<Record<string, unknown>>(
         "/newsletter-issues",
         {
@@ -506,32 +498,26 @@ export async function getLatestIssue(): Promise<Issue | null> {
         },
       );
 
-      console.log("[CMS] newsletter-issues docs count:", data.docs.length);
-
       const raw = data.docs[0];
       const issue = mapCmsIssue(raw);
       if (!issue || !issue.articles.length) {
-        console.log("[CMS] mapCmsIssue returned no usable issue, trying direct articles fetch");
-        // Newsletter-issues didn't work — try composing from CMS articles
-        const composed = await composedFromArticles();
-        if (composed) return composed;
-        return mockFallback();
+        console.warn(
+          "[CMS] Latest newsletter-issue has no articles. " +
+          "Add featured articles to the issue in the CMS dashboard."
+        );
+        return devFallback();
       }
       return issue;
     },
-    async () => {
-      // CMS entirely unreachable — try composed, then full mock
-      const composed = await composedFromArticles();
-      if (composed) return composed;
-      return mockFallback();
-    },
+    devFallback,
   );
 }
 
 export async function getIssueBySlug(
   slug: string,
 ): Promise<Issue | null> {
-  const mockFallback = async () => {
+  const devFallback = async () => {
+    if (cmsAvailable()) return null;
     const { issues } = await getMockData();
     return (
       issues.find((i) => i.slug === slug && i.status === "published") ??
@@ -550,13 +536,9 @@ export async function getIssueBySlug(
           limit: "1",
         },
       );
-      const issue = mapCmsIssue(data.docs[0]);
-      if (!issue) {
-        return mockFallback();
-      }
-      return issue;
+      return mapCmsIssue(data.docs[0]);
     },
-    mockFallback,
+    devFallback,
   );
 }
 
@@ -565,7 +547,8 @@ export async function getIssueBySlug(
 // ---------------------------------------------------------------------------
 
 export async function getAllIssues(): Promise<Issue[]> {
-  const mockFallback = async () => {
+  const devFallback = async () => {
+    if (cmsAvailable()) return [];
     const { issues } = await getMockData();
     return issues
       .filter((i) => i.status === "published")
@@ -590,10 +573,9 @@ export async function getAllIssues(): Promise<Issue[]> {
       const issues = data.docs
         .map(mapCmsIssue)
         .filter((i): i is Issue => i !== null && i.articles.length > 0);
-      if (!issues.length) return mockFallback();
       return issues;
     },
-    mockFallback,
+    devFallback,
   );
 }
 
