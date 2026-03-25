@@ -9,10 +9,12 @@
 
 import type {
   Article,
+  Book,
   BrandPillar,
   Issue,
   PayloadResponse,
   PodcastEpisode,
+  TransformidableFeature,
 } from "./types";
 
 const CMS_URL = process.env.PAYLOAD_CMS_URL ?? "";
@@ -716,4 +718,56 @@ export async function searchContent(query: string): Promise<{
           ep.guest?.name.toLowerCase().includes(q)),
     ),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Reading Room — Books
+// ---------------------------------------------------------------------------
+
+export async function getBooks(): Promise<Book[]> {
+  return withFallback(
+    async () => {
+      const data = await payloadFetch<Book>("/books", {
+        "where[status][equals]": "published",
+        sort: "-publishedDate",
+        depth: "1",
+        limit: "100",
+      });
+      return data.docs;
+    },
+    async () => {
+      const { books } = await getMockData();
+      return books.filter((b) => b.status === "published");
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reading Room — Transformidable Feature (Global / Singleton)
+// ---------------------------------------------------------------------------
+
+export async function getTransformidableFeature(): Promise<TransformidableFeature> {
+  const defaultFeature: TransformidableFeature = {
+    mode: "pre-order",
+    tagline: "A new framework for leading change that sticks",
+    ctaLabel: "Pre-Order →",
+    ctaUrl: "#",
+    coverImage: "",
+    launchLabel: "Coming June 2026",
+  };
+
+  return withFallback(
+    async () => {
+      const url = new URL("/api/globals/transformidable-feature", CMS_URL);
+      const res = await fetch(url.toString(), {
+        next: { revalidate: REVALIDATE_SECONDS },
+      });
+      if (!res.ok) throw new Error(`Payload CMS error ${res.status}`);
+      return (await res.json()) as TransformidableFeature;
+    },
+    async () => {
+      const { transformidableFeature } = await getMockData();
+      return transformidableFeature ?? defaultFeature;
+    },
+  );
 }

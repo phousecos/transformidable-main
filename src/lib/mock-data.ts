@@ -10,7 +10,15 @@ export type {
   Issue,
 } from "./types";
 
-import type { BrandPillar, Author, Article, PodcastEpisode, Issue } from "./types";
+import type {
+  BrandPillar,
+  Author,
+  Article,
+  PodcastEpisode,
+  Issue,
+  Book,
+  TransformidableFeature,
+} from "./types";
 
 // ---------------------------------------------------------------------------
 // Brand Pillars
@@ -300,3 +308,79 @@ That's the point.`,
     tagline: "Lead boldly. Think differently.",
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Reading Room — Books
+// ---------------------------------------------------------------------------
+
+export const books: Book[] = [
+  {
+    id: "book-1",
+    title: "Eloquent Rage",
+    author: "Dr. Brittney Cooper",
+    coverImage: "/images/reading-room/eloquent-rage.jpg",
+    editorialNote:
+      "A bold feminist manifesto that reclaims Black women's anger as a political and personal force. This month's Illuminate selection challenges us to stop being good and start being free.",
+    section: "book-club",
+    illuminateBadge: true,
+    isCurrentSelection: true,
+    bookshopUrl: "https://bookshop.org/a/example/9781250112873",
+    publishedDate: "2026-04-01T00:00:00.000Z",
+    status: "published",
+  },
+  {
+    id: "book-2",
+    title: "Dare to Lead",
+    author: "Brené Brown",
+    coverImage: "/images/reading-room/dare-to-lead.jpg",
+    editorialNote:
+      "Brown dismantles the myth that leadership requires armor. A must-read for anyone building teams in high-stakes environments.",
+    section: "career-leadership",
+    illuminateBadge: false,
+    isCurrentSelection: false,
+    bookshopUrl: "https://bookshop.org/a/example/9780399592522",
+    publishedDate: "2026-03-01T00:00:00.000Z",
+    status: "published",
+  },
+  {
+    id: "book-3",
+    title: "Negotiating While Black",
+    author: "Damali Peterman",
+    coverImage: "/images/reading-room/negotiating-while-black.jpg",
+    editorialNote:
+      "A practical, culturally grounded guide to negotiation for Black professionals navigating corporate spaces.",
+    section: "career-leadership",
+    illuminateBadge: false,
+    isCurrentSelection: false,
+    bookshopUrl: "https://bookshop.org/a/example/9781523006328",
+    publishedDate: "2026-03-01T00:00:00.000Z",
+    status: "published",
+  },
+  {
+    id: "book-4",
+    title: "The First 90 Days",
+    author: "Michael D. Watkins",
+    coverImage: "/images/reading-room/first-90-days.jpg",
+    editorialNote:
+      "The definitive playbook for leaders in transition. Essential reading for anyone stepping into a new executive role.",
+    section: "career-leadership",
+    illuminateBadge: false,
+    isCurrentSelection: false,
+    bookshopUrl: "https://bookshop.org/a/example/9781422188613",
+    publishedDate: "2026-03-01T00:00:00.000Z",
+    status: "published",
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Reading Room — Transformidable Feature
+// ---------------------------------------------------------------------------
+
+export const transformidableFeature: TransformidableFeature = {
+  mode: "pre-order",
+  tagline: "A new framework for leading change that sticks",
+  ctaLabel: "Pre-Order →",
+  ctaUrl: "https://payhip.com/b/example-transformidable",
+  coverImage: "/images/reading-room/transformidable-cover.jpg",
+  launchLabel: "Coming June 2026",
+};
