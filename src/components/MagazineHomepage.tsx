@@ -2,31 +2,49 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Issue } from "@/lib/types";
+import type { Issue, Article } from "@/lib/types";
 
-type Tab = "cover" | "editors-letter" | "this-issue";
+type View =
+  | { kind: "cover" }
+  | { kind: "editors-letter" }
+  | { kind: "this-issue" }
+  | { kind: "article"; article: Article; position: number };
 
 interface MagazineHomepageProps {
   issue: Issue;
 }
 
 export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
-  const [activeTab, setActiveTab] = useState<Tab>("cover");
+  const [view, setView] = useState<View>({ kind: "cover" });
 
   const volumeLabel = `VOL. ${"I".repeat(issue.volume)} · ISSUE ${String(issue.issueNumber).padStart(2, "0")}`;
   const issueNumberFormatted = String(issue.issueNumber).padStart(2, "0");
-
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "cover", label: "COVER" },
-    { id: "editors-letter", label: "EDITOR\u2019S LETTER" },
-    { id: "this-issue", label: "THIS ISSUE" },
-  ];
 
   const articles = issue.articles ?? [];
   const flagship = articles.find((a) => a.isFlagship);
   const remaining = articles
     .filter((a) => !a.isFlagship)
     .sort((a, b) => a.position - b.position);
+
+  const openArticle = (article: Article, position: number) => {
+    setView({ kind: "article", article, position });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const tabs: { id: View["kind"]; label: string }[] = [
+    { id: "cover", label: "COVER" },
+    { id: "editors-letter", label: "EDITOR\u2019S LETTER" },
+    { id: "this-issue", label: "THIS ISSUE" },
+  ];
+
+  const handleTabClick = (tabId: View["kind"]) => {
+    if (tabId === "cover") setView({ kind: "cover" });
+    else if (tabId === "editors-letter") setView({ kind: "editors-letter" });
+    else if (tabId === "this-issue") setView({ kind: "this-issue" });
+  };
+
+  // Determine which tab is active (articles map back to "this-issue")
+  const activeTabId = view.kind === "article" ? "this-issue" : view.kind;
 
   return (
     <>
@@ -74,9 +92,9 @@ export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 className={`flex-1 py-3 text-center text-xs font-medium tracking-[0.15em] transition-colors md:text-sm md:tracking-[0.2em] ${
-                  activeTab === tab.id
+                  activeTabId === tab.id
                     ? "bg-parchment/10 text-gold"
                     : "text-parchment/60 hover:text-parchment"
                 }`}
@@ -86,25 +104,54 @@ export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
             ))}
           </div>
         </div>
+
+        {/* Article breadcrumb bar — shown when reading an article */}
+        {view.kind === "article" && (
+          <div className="border-t border-parchment/10 bg-obsidian/80">
+            <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-2">
+              <button
+                onClick={() => setView({ kind: "this-issue" })}
+                className="text-[10px] font-medium uppercase tracking-[0.2em] text-gold transition-colors hover:text-parchment md:text-xs"
+              >
+                &larr; Back to Issue
+              </button>
+              <span className="text-parchment/20">|</span>
+              <span className="truncate text-[10px] font-medium tracking-[0.1em] text-parchment/50 md:text-xs">
+                {String(view.position).padStart(2, "0")} &middot; {view.article.title}
+              </span>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Tab Content */}
+      {/* Content */}
       <main className="min-h-[60vh]">
-        {activeTab === "cover" && (
+        {view.kind === "cover" && (
           <CoverView
             issue={issue}
             issueNumber={issueNumberFormatted}
-            onNavigate={setActiveTab}
+            onNavigate={() => setView({ kind: "this-issue" })}
           />
         )}
-        {activeTab === "editors-letter" && (
+        {view.kind === "editors-letter" && (
           <EditorsLetterView issue={issue} />
         )}
-        {activeTab === "this-issue" && (
+        {view.kind === "this-issue" && (
           <ThisIssueView
             issue={issue}
             flagship={flagship}
             remaining={remaining}
+            onOpenArticle={openArticle}
+          />
+        )}
+        {view.kind === "article" && (
+          <ArticleReadView
+            article={view.article}
+            position={view.position}
+            issue={issue}
+            allArticles={articles}
+            onOpenArticle={openArticle}
+            onBackToIssue={() => setView({ kind: "this-issue" })}
           />
         )}
       </main>
@@ -123,7 +170,7 @@ function CoverView({
 }: {
   issue: Issue;
   issueNumber: string;
-  onNavigate: (tab: Tab) => void;
+  onNavigate: () => void;
 }) {
   const coverArticles = issue.articles ?? [];
 
@@ -200,7 +247,7 @@ function CoverView({
 
         {/* Read This Issue CTA */}
         <button
-          onClick={() => onNavigate("this-issue")}
+          onClick={onNavigate}
           className="mt-10 rounded-sm border border-gold/60 px-8 py-3 text-xs font-medium uppercase tracking-[0.2em] text-gold transition-colors hover:bg-gold/10"
         >
           Read This Issue →
@@ -241,11 +288,6 @@ function EditorsLetterView({ issue }: { issue: Issue }) {
   }
   const paragraphs = editorsLetter.body.split("\n\n");
 
-  // Find the blockquote paragraph (italic emphasis)
-  const blockquoteIndex = paragraphs.findIndex(
-    (p) => p.includes("That gap") || p.includes("crisis of this moment"),
-  );
-
   return (
     <section className="bg-parchment">
       <div className="mx-auto max-w-3xl px-6 pb-16 pt-12 md:pt-16 md:pb-20">
@@ -259,35 +301,21 @@ function EditorsLetterView({ issue }: { issue: Issue }) {
 
         {/* Letter body */}
         <div className="mt-10 space-y-6 md:mt-14">
-          {paragraphs.map((paragraph, i) => {
-            if (i === blockquoteIndex) {
-              return (
-                <blockquote
-                  key={i}
-                  className="my-8 border-l-[3px] border-gold py-2 pl-6 md:my-10"
-                >
-                  <p className="font-serif text-lg italic leading-relaxed text-gold md:text-xl">
-                    {paragraph}
-                  </p>
-                </blockquote>
-              );
-            }
-            return (
-              <p
-                key={i}
-                className="font-serif text-lg leading-[1.8] text-obsidian md:text-xl"
-              >
-                {paragraph}
-              </p>
-            );
-          })}
+          {paragraphs.map((paragraph, i) => (
+            <p
+              key={i}
+              className="font-serif text-lg leading-[1.8] text-obsidian md:text-xl"
+            >
+              {paragraph}
+            </p>
+          ))}
         </div>
 
         {/* Divider */}
         <div className="mt-12 h-px w-full bg-obsidian/10 md:mt-16" />
 
         {/* Author attribution */}
-        {editorsLetter.author && (
+        {editorsLetter.author?.name && (
           <div className="mt-8">
             <p className="text-sm font-semibold text-obsidian">
               — {editorsLetter.author.name}
@@ -305,17 +333,19 @@ function EditorsLetterView({ issue }: { issue: Issue }) {
 }
 
 // ---------------------------------------------------------------------------
-// This Issue Tab
+// This Issue Tab (Table of Contents)
 // ---------------------------------------------------------------------------
 
 function ThisIssueView({
   issue,
   flagship,
   remaining,
+  onOpenArticle,
 }: {
   issue: Issue;
   flagship: Issue["articles"][number] | undefined;
   remaining: Issue["articles"];
+  onOpenArticle: (article: Article, position: number) => void;
 }) {
   const categoryLabel = (pillars?: { name: string }[]) => {
     return pillars?.[0]?.name?.toUpperCase() ?? "EXECUTIVE LEADERSHIP";
@@ -352,7 +382,7 @@ function ThisIssueView({
         </h2>
 
         <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.25em] text-obsidian/50 md:text-xs">
-          {(issue.subheadline ?? "").replace("This issue — ", "This issue — ").toUpperCase()}
+          {(issue.subheadline ?? "").toUpperCase()}
         </p>
 
         {/* In This Issue */}
@@ -381,12 +411,12 @@ function ThisIssueView({
                 </span>
               </div>
               <h3 className="mt-3 font-serif text-xl font-semibold leading-snug text-obsidian md:text-2xl">
-                <Link
-                  href={`/articles/${flagship.article.slug}`}
-                  className="transition-colors hover:text-oxblood"
+                <button
+                  onClick={() => onOpenArticle(flagship.article, flagship.position)}
+                  className="text-left transition-colors hover:text-oxblood"
                 >
                   {flagship.article.title}
-                </Link>
+                </button>
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-obsidian/60 md:text-base">
                 {flagship.article.excerpt}
@@ -412,12 +442,12 @@ function ThisIssueView({
                 {categoryLabel(ia.article.brandPillars)}
               </p>
               <h3 className="mt-2 font-serif text-base font-semibold leading-snug text-obsidian md:text-lg">
-                <Link
-                  href={`/articles/${ia.article.slug}`}
-                  className="transition-colors hover:text-oxblood"
+                <button
+                  onClick={() => onOpenArticle(ia.article, ia.position)}
+                  className="text-left transition-colors hover:text-oxblood"
                 >
                   {ia.article.title}
-                </Link>
+                </button>
               </h3>
               <p className="mt-2 text-xs leading-relaxed text-obsidian/50 md:text-sm">
                 {ia.article.excerpt}
@@ -439,5 +469,173 @@ function ThisIssueView({
         </div>
       </div>
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Article Read View — reads an article within the magazine context
+// ---------------------------------------------------------------------------
+
+function ArticleReadView({
+  article,
+  position,
+  issue,
+  allArticles,
+  onOpenArticle,
+  onBackToIssue,
+}: {
+  article: Article;
+  position: number;
+  issue: Issue;
+  allArticles: Issue["articles"];
+  onOpenArticle: (article: Article, position: number) => void;
+  onBackToIssue: () => void;
+}) {
+  const date = new Date(article.publishDate);
+  const dateStr = isNaN(date.getTime())
+    ? ""
+    : date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+
+  // Find prev/next articles for navigation
+  const sorted = [...allArticles].sort((a, b) => a.position - b.position);
+  const currentIdx = sorted.findIndex((ia) => ia.article.id === article.id);
+  const prev = currentIdx > 0 ? sorted[currentIdx - 1] : null;
+  const next = currentIdx < sorted.length - 1 ? sorted[currentIdx + 1] : null;
+
+  return (
+    <>
+      {/* Article header */}
+      <div className="bg-obsidian">
+        <div className="mx-auto max-w-3xl px-6 pb-12 pt-10 md:pt-14 md:pb-16">
+          {/* Position & category */}
+          <div className="flex items-center gap-3">
+            <span className="font-serif text-2xl font-bold text-parchment/20 md:text-3xl">
+              {String(position).padStart(2, "0")}
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {article.brandPillars?.map((bp) => (
+                <span
+                  key={bp.id}
+                  className="text-xs font-medium uppercase tracking-[0.2em] text-gold"
+                >
+                  {bp.name}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <h1 className="mt-4 font-serif text-3xl font-bold leading-tight text-parchment md:text-5xl md:leading-[1.1]">
+            {article.title}
+          </h1>
+
+          <p className="mt-6 text-lg leading-relaxed text-parchment/65 font-light">
+            {article.excerpt}
+          </p>
+
+          <div className="mt-8 flex items-center gap-3">
+            {article.author?.name && (
+              <span className="text-xs font-medium uppercase tracking-[0.15em] text-gold">
+                {article.author.name}
+              </span>
+            )}
+            {dateStr && (
+              <>
+                <span className="text-gold/40">·</span>
+                <span className="text-xs font-medium uppercase tracking-[0.15em] text-gold/70">
+                  {dateStr}
+                </span>
+              </>
+            )}
+            {article.readTime && (
+              <>
+                <span className="text-gold/40">·</span>
+                <span className="text-xs font-medium uppercase tracking-[0.15em] text-gold/70">
+                  {article.readTime}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Issue context line */}
+          <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-parchment/30 md:text-xs">
+            Issue {String(issue.issueNumber).padStart(2, "0")} · Volume {issue.volume} · {issue.season}
+          </p>
+        </div>
+      </div>
+
+      {/* Article body */}
+      <div className="bg-parchment">
+        <div className="mx-auto max-w-3xl px-6 py-16 md:py-20">
+          {article.body ? (
+            <div
+              className="prose prose-lg max-w-none font-light text-obsidian/80"
+              dangerouslySetInnerHTML={{ __html: article.body }}
+            />
+          ) : (
+            <div className="prose prose-lg max-w-none font-light text-obsidian/80">
+              <p className="text-xl leading-relaxed">{article.excerpt}</p>
+              <p className="mt-8 text-base text-obsidian/40 italic">
+                Full article content will be rendered from the CMS rich text
+                field when connected to the Payload API.
+              </p>
+            </div>
+          )}
+
+          {/* Article navigation: prev / back to issue / next */}
+          <div className="mt-16 border-t border-obsidian/10 pt-8">
+            <div className="flex items-center justify-between">
+              {prev ? (
+                <button
+                  onClick={() => {
+                    onOpenArticle(prev.article, prev.position);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="text-left"
+                >
+                  <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-obsidian/40 md:text-xs">
+                    Previous
+                  </span>
+                  <p className="mt-1 font-serif text-sm font-semibold text-oxblood md:text-base">
+                    {prev.article.title}
+                  </p>
+                </button>
+              ) : (
+                <div />
+              )}
+
+              <button
+                onClick={onBackToIssue}
+                className="rounded-sm border border-obsidian/20 px-4 py-2 text-[10px] font-medium uppercase tracking-[0.2em] text-obsidian/60 transition-colors hover:border-oxblood hover:text-oxblood md:text-xs"
+              >
+                This Issue
+              </button>
+
+              {next ? (
+                <button
+                  onClick={() => {
+                    onOpenArticle(next.article, next.position);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="text-right"
+                >
+                  <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-obsidian/40 md:text-xs">
+                    Next
+                  </span>
+                  <p className="mt-1 font-serif text-sm font-semibold text-oxblood md:text-base">
+                    {next.article.title}
+                  </p>
+                </button>
+              ) : (
+                <div />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

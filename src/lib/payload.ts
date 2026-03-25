@@ -150,10 +150,15 @@ function normalizeBody(body: any): string {
   return "";
 }
 
-// Normalize an article's body field from CMS response.
+// Normalize an article from the CMS response: convert Lexical body to HTML
+// and ensure publishDate is a valid ISO string (avoids 1970 epoch dates).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeArticle(raw: any): Article {
-  return { ...raw, body: normalizeBody(raw.body) };
+  let publishDate = raw.publishDate;
+  if (!publishDate || isNaN(new Date(publishDate).getTime())) {
+    publishDate = raw.createdAt ?? raw.updatedAt ?? new Date().toISOString();
+  }
+  return { ...raw, body: normalizeBody(raw.body), publishDate };
 }
 
 // ---------------------------------------------------------------------------
@@ -540,7 +545,7 @@ export async function getIssueBySlug(
         "/newsletter-issues",
         {
           "where[slug][equals]": slug,
-          "where[status][equals]": "sent",
+          "where[status][equals]": "published",
           depth: "2",
           limit: "1",
         },
@@ -550,6 +555,43 @@ export async function getIssueBySlug(
         return mockFallback();
       }
       return issue;
+    },
+    mockFallback,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// All Issues (for the archive page)
+// ---------------------------------------------------------------------------
+
+export async function getAllIssues(): Promise<Issue[]> {
+  const mockFallback = async () => {
+    const { issues } = await getMockData();
+    return issues
+      .filter((i) => i.status === "published")
+      .sort(
+        (a, b) =>
+          new Date(b.publishDate).getTime() -
+          new Date(a.publishDate).getTime(),
+      );
+  };
+
+  return withFallback(
+    async () => {
+      const data = await payloadFetch<Record<string, unknown>>(
+        "/newsletter-issues",
+        {
+          "where[status][equals]": "published",
+          sort: "-issueDate",
+          depth: "2",
+          limit: "100",
+        },
+      );
+      const issues = data.docs
+        .map(mapCmsIssue)
+        .filter((i): i is Issue => i !== null && i.articles.length > 0);
+      if (!issues.length) return mockFallback();
+      return issues;
     },
     mockFallback,
   );
