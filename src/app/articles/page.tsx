@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Footer from "@/components/Footer";
 import { getAllIssues } from "@/lib/payload";
 
@@ -17,11 +18,15 @@ export default async function ArchivePage() {
       {/* Magazine-style nav */}
       <nav className="sticky top-0 z-50 bg-obsidian">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link
-            href="/"
-            className="font-serif text-sm font-bold tracking-[0.25em] text-parchment md:text-base"
-          >
-            TRANSFORMIDABLE
+          <Link href="/" className="block">
+            <Image
+              src="/primary.png"
+              alt="Transformidable"
+              width={180}
+              height={32}
+              className="h-6 w-auto md:h-7"
+              priority
+            />
           </Link>
 
           <div className="hidden items-center gap-6 sm:flex md:gap-8">

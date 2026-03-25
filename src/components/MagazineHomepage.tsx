@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { Issue, Article } from "@/lib/types";
 
 type View =
@@ -53,11 +54,15 @@ export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
       {/* Magazine Navigation Bar */}
       <nav className="sticky top-0 z-50 bg-obsidian">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link
-            href="/"
-            className="font-serif text-sm font-bold tracking-[0.25em] text-parchment md:text-base"
-          >
-            TRANSFORMIDABLE
+          <Link href="/" className="block">
+            <Image
+              src="/primary.png"
+              alt="Transformidable"
+              width={180}
+              height={32}
+              className="h-6 w-auto md:h-7"
+              priority
+            />
           </Link>
 
           {/* Desktop nav links */}
@@ -194,9 +199,15 @@ function CoverView({
         </p>
 
         {/* Wordmark */}
-        <p className="mt-4 font-serif text-xs font-bold tracking-[0.25em] text-gold/80 md:text-sm">
-          TRANSFORMIDABLE
-        </p>
+        <div className="mt-4">
+          <Image
+            src="/primary.png"
+            alt="Transformidable"
+            width={200}
+            height={36}
+            className="h-5 w-auto opacity-80 md:h-6"
+          />
+        </div>
 
         {/* Headline */}
         <h1 className="mt-6 font-serif text-3xl font-bold italic leading-tight text-parchment md:mt-8 md:text-[40px] md:leading-[1.15]">
@@ -358,9 +369,13 @@ function ThisIssueView({
       <div className="mx-auto max-w-5xl px-6 pb-16 pt-10 md:pt-14 md:pb-20">
         {/* Header */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
-          <p className="font-serif text-sm font-bold tracking-[0.15em] text-oxblood md:text-base">
-            TRANSFORMIDABLE
-          </p>
+          <Image
+            src="/primary.png"
+            alt="Transformidable"
+            width={180}
+            height={32}
+            className="h-5 w-auto brightness-0 md:h-6"
+          />
           <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-obsidian/40 md:text-xs">
             {issue.issueNumber != null && <>Issue {String(issue.issueNumber).padStart(2, "0")}</>}
             {issue.issueNumber != null && issue.volume != null && <> · </>}
