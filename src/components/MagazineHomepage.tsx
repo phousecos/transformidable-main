@@ -151,7 +151,7 @@ function CoverView({
 
         {/* Headline */}
         <h1 className="mt-6 max-w-xl font-serif text-3xl font-bold italic leading-tight text-parchment md:mt-8 md:text-[40px] md:leading-[1.15]">
-          {issue.headline.split("\n").map((line, i) => (
+          {(issue.headline ?? "").split("\n").map((line, i) => (
             <span key={i}>
               {line}
               {i === 0 && <br />}
@@ -343,7 +343,7 @@ function ThisIssueView({
 
         {/* Headline */}
         <h2 className="mt-8 max-w-lg font-serif text-2xl font-bold italic leading-snug text-obsidian md:mt-10 md:text-[32px] md:leading-tight">
-          {issue.headline.split("\n").map((line, i) => (
+          {(issue.headline ?? "").split("\n").map((line, i) => (
             <span key={i}>
               {line}
               {i === 0 && <br />}
@@ -352,7 +352,7 @@ function ThisIssueView({
         </h2>
 
         <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.25em] text-obsidian/50 md:text-xs">
-          {issue.subheadline.replace("This issue — ", "This issue — ").toUpperCase()}
+          {(issue.subheadline ?? "").replace("This issue — ", "This issue — ").toUpperCase()}
         </p>
 
         {/* In This Issue */}
