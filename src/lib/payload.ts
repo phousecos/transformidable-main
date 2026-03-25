@@ -324,7 +324,8 @@ export async function getLatestIssue(): Promise<Issue | null> {
         !issue.editorsLetter?.body
       ) {
         console.warn(
-          "[payload] CMS returned incomplete issue data, using mock data",
+          "[payload] CMS returned incomplete issue data, using mock data. Fields present:",
+          issue ? Object.keys(issue).join(", ") : "no doc",
         );
         return mockFallback();
       }
