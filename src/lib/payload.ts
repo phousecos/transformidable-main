@@ -313,14 +313,23 @@ export async function getLatestIssue(): Promise<Issue | null> {
         depth: "2",
         limit: "1",
       });
-      // If CMS returns empty docs (collection exists but no published
-      // issues yet, or field mismatch), fall back to mock data so the
+      // If CMS returns empty docs or an issue missing critical fields
+      // (relationships not populated yet), fall back to mock data so the
       // homepage still renders content.
-      if (!data.docs.length) {
-        console.warn("[payload] CMS returned no published issues, using mock data");
+      const issue = data.docs[0];
+      if (
+        !issue ||
+        !issue.articles?.length ||
+        !issue.headline ||
+        !issue.editorsLetter?.body
+      ) {
+        console.warn(
+          "[payload] CMS returned incomplete issue data, using mock data. Fields present:",
+          issue ? Object.keys(issue).join(", ") : "no doc",
+        );
         return mockFallback();
       }
-      return data.docs[0];
+      return issue;
     },
     mockFallback,
   );
