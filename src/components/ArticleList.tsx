@@ -87,7 +87,7 @@ function FilterTag({
 }
 
 function ArticleCard({ article }: { article: Article }) {
-  const pillarLabel = article.brandPillars[0]?.name ?? "Executive Leadership";
+  const pillarLabel = article.brandPillars?.[0]?.name ?? "Executive Leadership";
   const date = new Date(article.publishDate).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -97,7 +97,7 @@ function ArticleCard({ article }: { article: Article }) {
   return (
     <article className="group border-b border-obsidian/10 pb-8">
       <div className="flex flex-wrap items-center gap-2">
-        {article.brandPillars.map((bp) => (
+        {article.brandPillars?.map((bp) => (
           <Link
             key={bp.id}
             href={`/brand/${bp.slug}`}
@@ -123,9 +123,11 @@ function ArticleCard({ article }: { article: Article }) {
       </p>
 
       <div className="mt-4 flex items-center gap-3">
-        <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-gold">
-          {article.author.name}
-        </span>
+        {article.author?.name && (
+          <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-gold">
+            {article.author.name}
+          </span>
+        )}
         <span className="text-obsidian/20">·</span>
         <span className="text-[11px] font-medium uppercase tracking-[0.15em] text-obsidian/40">
           {date}
