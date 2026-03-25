@@ -463,13 +463,10 @@ function mapCmsIssue(raw: any): Issue | null {
 
 export async function getLatestIssue(): Promise<Issue | null> {
   // Mock data is ONLY used when PAYLOAD_CMS_URL is not set (local dev).
-  // In production, all issue data must come from the CMS.
   const devFallback = async () => {
     if (cmsAvailable()) {
-      // CMS is configured but returned nothing — this is a real problem,
-      // not something to paper over with mock data.
       console.error(
-        "[CMS] No published newsletter-issues found. " +
+        "[CMS] No published newsletter-issues found and no articles available. " +
         "Create an issue in the CMS with status 'published' and at least one featured article."
       );
       return null;
@@ -486,6 +483,53 @@ export async function getLatestIssue(): Promise<Issue | null> {
     return published[0] ?? null;
   };
 
+  // If the newsletter-issues collection doesn't have usable data, try
+  // building an issue shell from CMS articles (no hardcoded metadata).
+  const issueFromArticles = async (): Promise<Issue | null> => {
+    if (!cmsAvailable()) return null;
+    try {
+      const data = await payloadFetch<Article>("/articles", {
+        "where[status][equals]": "published",
+        sort: "-publishDate",
+        depth: "2",
+        limit: "10",
+      });
+      if (!data.docs.length) return null;
+
+      console.warn(
+        "[CMS] Building issue from /articles because newsletter-issues " +
+        "returned no usable data. Fill in the newsletter-issues collection " +
+        "for full issue metadata (headline, season, editor's letter, etc.)."
+      );
+
+      const normalizedDocs = data.docs.map(normalizeArticle);
+      const articles: Issue["articles"] = normalizedDocs.map((article, idx) => ({
+        article,
+        position: idx + 1,
+        isFlagship: idx === 0,
+      }));
+
+      // Derive minimal metadata from the articles themselves — no hardcoded values.
+      return {
+        id: "derived",
+        volume: null,
+        issueNumber: null,
+        slug: "",
+        title: normalizedDocs[0]?.title ?? "",
+        headline: normalizedDocs[0]?.title ?? "",
+        subheadline: "",
+        season: "",
+        publishDate: normalizedDocs[0]?.publishDate ?? "",
+        editorsLetter: { body: "", author: null },
+        articles,
+        status: "published",
+        tagline: "",
+      };
+    } catch {
+      return null;
+    }
+  };
+
   return withFallback(
     async () => {
       const data = await payloadFetch<Record<string, unknown>>(
@@ -498,18 +542,31 @@ export async function getLatestIssue(): Promise<Issue | null> {
         },
       );
 
+      // Log what came back so we can diagnose field mapping issues
       const raw = data.docs[0];
+      if (raw) {
+        console.log("[CMS] newsletter-issue keys:", Object.keys(raw));
+        console.log("[CMS] newsletter-issue status:", (raw as Record<string, unknown>).status);
+        console.log("[CMS] newsletter-issue featuredArticles type:", typeof (raw as Record<string, unknown>).featuredArticles, Array.isArray((raw as Record<string, unknown>).featuredArticles) ? `(length: ${((raw as Record<string, unknown>).featuredArticles as unknown[]).length})` : "");
+      } else {
+        console.warn("[CMS] newsletter-issues query returned 0 docs");
+      }
+
       const issue = mapCmsIssue(raw);
       if (!issue || !issue.articles.length) {
-        console.warn(
-          "[CMS] Latest newsletter-issue has no articles. " +
-          "Add featured articles to the issue in the CMS dashboard."
-        );
+        console.warn("[CMS] Newsletter-issue mapped but has no articles, trying /articles fallback");
+        const fromArticles = await issueFromArticles();
+        if (fromArticles) return fromArticles;
         return devFallback();
       }
       return issue;
     },
-    devFallback,
+    async () => {
+      // CMS unreachable — try articles fallback, then dev mock
+      const fromArticles = await issueFromArticles();
+      if (fromArticles) return fromArticles;
+      return devFallback();
+    },
   );
 }
 
@@ -573,6 +630,12 @@ export async function getAllIssues(): Promise<Issue[]> {
       const issues = data.docs
         .map(mapCmsIssue)
         .filter((i): i is Issue => i !== null && i.articles.length > 0);
+
+      // If newsletter-issues collection is empty, try to build from articles
+      if (!issues.length) {
+        const latest = await getLatestIssue();
+        return latest ? [latest] : [];
+      }
       return issues;
     },
     devFallback,
