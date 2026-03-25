@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getArticleBySlug, getArticleSlugs } from "@/lib/payload";
 
@@ -32,29 +31,72 @@ export default async function ArticlePage({
   const article = await getArticleBySlug(slug);
   if (!article) notFound();
 
-  const date = new Date(article.publishDate).toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  const rawDate = new Date(article.publishDate);
+  const date = isNaN(rawDate.getTime())
+    ? ""
+    : rawDate.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
 
   return (
     <>
-      <Navbar />
+      {/* Magazine-style navigation */}
+      <nav className="sticky top-0 z-50 bg-obsidian">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <Link
+            href="/"
+            className="font-serif text-sm font-bold tracking-[0.25em] text-parchment md:text-base"
+          >
+            TRANSFORMIDABLE
+          </Link>
+
+          <div className="hidden items-center gap-6 sm:flex md:gap-8">
+            <Link
+              href="/articles"
+              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
+            >
+              Archive
+            </Link>
+            <Link
+              href="/about"
+              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
+            >
+              About
+            </Link>
+          </div>
+        </div>
+
+        {/* Breadcrumb back to current issue */}
+        <div className="border-t border-parchment/10">
+          <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-2">
+            <Link
+              href="/"
+              className="text-[10px] font-medium uppercase tracking-[0.2em] text-gold transition-colors hover:text-parchment md:text-xs"
+            >
+              &larr; Current Issue
+            </Link>
+            <span className="text-parchment/20">|</span>
+            <span className="truncate text-[10px] font-medium tracking-[0.1em] text-parchment/50 md:text-xs">
+              {article.title}
+            </span>
+          </div>
+        </div>
+      </nav>
+
       <main>
         {/* Article header */}
         <div className="bg-obsidian">
-          <div className="mx-auto max-w-3xl px-6 pb-16 pt-20 md:pt-28 md:pb-20">
+          <div className="mx-auto max-w-3xl px-6 pb-12 pt-10 md:pt-14 md:pb-16">
             <div className="flex flex-wrap gap-2">
               {article.brandPillars?.map((bp) => (
-                <Link
+                <span
                   key={bp.id}
-                  href={`/brand/${bp.slug}`}
-                  className="text-xs font-medium uppercase tracking-[0.2em] text-gold transition-colors hover:text-parchment"
+                  className="text-xs font-medium uppercase tracking-[0.2em] text-gold"
                 >
                   {bp.name}
-                </Link>
+                </span>
               ))}
             </div>
 
@@ -72,10 +114,14 @@ export default async function ArticlePage({
                   {article.author.name}
                 </span>
               )}
-              <span className="text-gold/40">·</span>
-              <span className="text-xs font-medium uppercase tracking-[0.15em] text-gold/70">
-                {date}
-              </span>
+              {date && (
+                <>
+                  <span className="text-gold/40">·</span>
+                  <span className="text-xs font-medium uppercase tracking-[0.15em] text-gold/70">
+                    {date}
+                  </span>
+                </>
+              )}
               {article.readTime && (
                 <>
                   <span className="text-gold/40">·</span>
@@ -106,13 +152,13 @@ export default async function ArticlePage({
               </div>
             )}
 
-            {/* Back to articles */}
+            {/* Back to issue */}
             <div className="mt-16 border-t border-obsidian/10 pt-8">
               <Link
-                href="/articles"
+                href="/"
                 className="text-sm font-medium text-oxblood transition-colors hover:text-oxblood/70"
               >
-                &larr; All articles
+                &larr; Back to Current Issue
               </Link>
             </div>
           </div>
