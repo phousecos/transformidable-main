@@ -133,7 +133,7 @@ function CoverView({
         {/* Volume / Season / Publisher */}
         <p className="mb-10 text-[10px] font-medium uppercase tracking-[0.25em] text-parchment/50 md:mb-14 md:text-xs">
           Volume {issue.volume} &nbsp;·&nbsp; {issue.season} &nbsp;·&nbsp;
-          Powerhouse Industries
+          <a href="https://phousecos.com" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gold">Powerhouse Industries</a>
         </p>
 
         {/* Large decorative issue number */}
@@ -211,7 +211,7 @@ function CoverView({
       <div className="border-t border-parchment/10">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <p className="text-[10px] font-medium tracking-[0.15em] text-parchment/40 md:text-xs">
-            A publication of Powerhouse Industries
+            A publication of <a href="https://phousecos.com" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-gold">Powerhouse Industries</a>
           </p>
           <p className="font-serif text-xs italic text-gold/60 md:text-sm">
             {issue.season}
@@ -429,7 +429,7 @@ function ThisIssueView({
         {/* Footer tagline */}
         <div className="mt-14 flex items-center justify-between border-t border-obsidian/10 pt-4 md:mt-20">
           <p className="text-[10px] font-medium tracking-[0.15em] text-obsidian/40 md:text-xs">
-            A publication of Powerhouse Industries
+            A publication of <a href="https://phousecos.com" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-oxblood">Powerhouse Industries</a>
           </p>
           {issue.tagline && (
             <p className="font-serif text-xs italic text-gold md:text-sm">
