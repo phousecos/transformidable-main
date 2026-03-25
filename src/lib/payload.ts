@@ -490,8 +490,9 @@ export async function getLatestIssue(): Promise<Issue | null> {
 
   return withFallback(
     async () => {
-      // Try "sent" status first (the published state in CMS),
-      // then fall back to fetching any status if no "sent" issues exist.
+      // The newsletter-issues status workflow is: draft → scheduled → sent.
+      // "sent" means published/live. We also accept "published" in case the
+      // CMS uses that label instead.
       let data = await payloadFetch<Record<string, unknown>>(
         "/newsletter-issues",
         {
@@ -502,11 +503,13 @@ export async function getLatestIssue(): Promise<Issue | null> {
         },
       );
 
+      // Some CMS configs may use "published" instead of "sent"
       if (!data.docs.length) {
-        console.log("[CMS] No newsletter-issues with status 'sent', trying without status filter");
+        console.log("[CMS] No newsletter-issues with status 'sent', trying 'published'");
         data = await payloadFetch<Record<string, unknown>>(
           "/newsletter-issues",
           {
+            "where[status][equals]": "published",
             sort: "-issueDate",
             depth: "2",
             limit: "1",
