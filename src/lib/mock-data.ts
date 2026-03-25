@@ -7,9 +7,10 @@ export type {
   MediaItem,
   Article,
   PodcastEpisode,
+  Issue,
 } from "./types";
 
-import type { BrandPillar, Author, Article, PodcastEpisode } from "./types";
+import type { BrandPillar, Author, Article, PodcastEpisode, Issue } from "./types";
 
 // ---------------------------------------------------------------------------
 // Brand Pillars
@@ -210,5 +211,92 @@ export const podcastEpisodes: PodcastEpisode[] = [
     brandPillars: [brandPillars[4]],
     syndicateTo: ["jerribland", "unlimitedpowerhouse"],
     status: "published",
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Issues
+// ---------------------------------------------------------------------------
+
+export const issues: Issue[] = [
+  {
+    id: "issue-1",
+    volume: 1,
+    issueNumber: 1,
+    slug: "vol-1-issue-01",
+    title: "Technology, Trust, and the Cost of Not Keeping Up",
+    headline: "When technology outruns leadership,\nthe gap becomes the crisis.",
+    subheadline:
+      "This issue — Technology, Trust, and the Cost of Not Keeping Up",
+    season: "Spring 2026",
+    publishDate: "2026-03-01T09:00:00.000Z",
+    editorsLetter: {
+      body: `I have spent more than twenty-five years helping organizations navigate technology — and if there is one thing that has never changed, it is this: the technology is rarely the problem.
+
+The problem is almost always the conversation that didn't happen before the decision got made. The CIO who wasn't in the room. The roadmap built in isolation. The AI deployment that nobody stress-tested against the humans on the other end of it.
+
+That gap — between what technology can do and what leadership is prepared to steward — is the crisis of this moment.
+
+That is what this issue is about. Not the technology itself, but the leadership responsibility that comes with it. The decisions being made right now, in boardrooms and strategy sessions across every industry, will define what kind of organizations we become.
+
+I hope these pages make you think — and maybe make you a little uncomfortable.
+
+That's the point.`,
+      author: authors[0],
+    },
+    articles: [
+      {
+        article: {
+          ...articles[0],
+          title: "The CIO You Hired Can't Lead the Organization You're Becoming",
+          slug: "cio-hired-cant-lead",
+          excerpt:
+            "The role was designed for a different era. The organization you are building requires something it was never meant to produce — and that is a leadership problem, not a technology one.",
+          brandPillars: [brandPillars[0]],
+        },
+        position: 1,
+        isFlagship: true,
+      },
+      {
+        article: {
+          ...articles[1],
+          title: "Why Your IT Roadmap Is a Business Strategy Problem",
+          slug: "it-roadmap-business-strategy",
+          excerpt:
+            "Three diagnostic questions every leadership team should be able to answer — and why most can't.",
+          brandPillars: [brandPillars[0]],
+        },
+        position: 2,
+        isFlagship: false,
+      },
+      {
+        article: {
+          ...articles[2],
+          title:
+            "Owning the Strategy Room: How Women in Tech Move from Execution to Vision",
+          slug: "women-tech-execution-to-vision",
+          excerpt:
+            "What the research shows — and what the current climate means for women building toward leadership.",
+          brandPillars: [brandPillars[3]],
+        },
+        position: 3,
+        isFlagship: false,
+      },
+      {
+        article: {
+          ...articles[3],
+          title:
+            "The Conversation No One's Having About Technology and Trust",
+          slug: "conversation-technology-trust",
+          excerpt:
+            "Thirty years of loyalty. One chatbot loop. Something important was lost.",
+          brandPillars: [brandPillars[4]],
+        },
+        position: 4,
+        isFlagship: false,
+      },
+    ],
+    status: "published",
+    tagline: "Lead boldly. Think differently.",
   },
 ];

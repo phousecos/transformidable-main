@@ -70,6 +70,31 @@ export interface PodcastEpisode {
   status: "draft" | "review" | "scheduled" | "published";
 }
 
+export interface IssueArticle {
+  article: Article;
+  position: number;
+  isFlagship: boolean;
+}
+
+export interface Issue {
+  id: string;
+  volume: number;
+  issueNumber: number;
+  slug: string;
+  title: string;
+  headline: string;
+  subheadline: string;
+  season: string;
+  publishDate: string;
+  editorsLetter: {
+    body: string;
+    author: Author;
+  };
+  articles: IssueArticle[];
+  status: "draft" | "published";
+  tagline?: string;
+}
+
 // Payload CMS paginated response envelope
 export interface PayloadResponse<T> {
   docs: T[];
