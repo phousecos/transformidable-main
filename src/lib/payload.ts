@@ -73,6 +73,90 @@ async function getMockData() {
 }
 
 // ---------------------------------------------------------------------------
+// Lexical richText → HTML conversion
+// ---------------------------------------------------------------------------
+
+// Payload CMS v3 uses Lexical editor, which returns richText as JSON.
+// This lightweight converter handles the common node types so article body
+// renders as HTML in the frontend.
+
+interface LexicalNode {
+  type?: string;
+  tag?: string;
+  text?: string;
+  format?: number | string;
+  children?: LexicalNode[];
+  listType?: string;
+  url?: string;
+  target?: string;
+  rel?: string;
+  value?: { url?: string; alt?: string };
+}
+
+function lexicalToHtml(node: LexicalNode): string {
+  if (!node) return "";
+
+  // Text node
+  if (node.type === "text" || (!node.type && typeof node.text === "string")) {
+    let text = node.text ?? "";
+    const fmt = typeof node.format === "number" ? node.format : 0;
+    if (fmt & 1) text = `<strong>${text}</strong>`;
+    if (fmt & 2) text = `<em>${text}</em>`;
+    if (fmt & 4) text = `<s>${text}</s>`;
+    if (fmt & 8) text = `<u>${text}</u>`;
+    if (fmt & 16) text = `<code>${text}</code>`;
+    return text;
+  }
+
+  const children = (node.children ?? []).map(lexicalToHtml).join("");
+
+  switch (node.type) {
+    case "root":
+      return children;
+    case "paragraph":
+      return `<p>${children}</p>`;
+    case "heading":
+      return `<${node.tag ?? "h2"}>${children}</${node.tag ?? "h2"}>`;
+    case "quote":
+      return `<blockquote>${children}</blockquote>`;
+    case "list":
+      return node.listType === "number"
+        ? `<ol>${children}</ol>`
+        : `<ul>${children}</ul>`;
+    case "listitem":
+      return `<li>${children}</li>`;
+    case "link":
+    case "autolink":
+      return `<a href="${node.url ?? "#"}"${node.target ? ` target="${node.target}"` : ""}${node.rel ? ` rel="${node.rel}"` : ""}>${children}</a>`;
+    case "linebreak":
+      return "<br />";
+    case "upload":
+      return node.value?.url
+        ? `<figure><img src="${node.value.url}" alt="${node.value.alt ?? ""}" /></figure>`
+        : "";
+    default:
+      return children;
+  }
+}
+
+// Normalize a body field: if it's a Lexical JSON object, convert to HTML.
+// If it's already a string (HTML or empty), return as-is.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeBody(body: any): string {
+  if (typeof body === "string") return body;
+  if (body && typeof body === "object" && body.root) {
+    return lexicalToHtml(body.root);
+  }
+  return "";
+}
+
+// Normalize an article's body field from CMS response.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeArticle(raw: any): Article {
+  return { ...raw, body: normalizeBody(raw.body) };
+}
+
+// ---------------------------------------------------------------------------
 // Articles
 // ---------------------------------------------------------------------------
 
@@ -92,7 +176,7 @@ export async function getArticles(options?: {
         params["where[brandPillars.slug][equals]"] = options.pillarSlug;
       }
       const data = await payloadFetch<Article>("/articles", params);
-      return data.docs;
+      return data.docs.map(normalizeArticle);
     },
     async () => {
       const { articles } = await getMockData();
@@ -124,7 +208,8 @@ export async function getArticleBySlug(
         depth: "2",
         limit: "1",
       });
-      return data.docs[0] ?? null;
+      const doc = data.docs[0];
+      return doc ? normalizeArticle(doc) : null;
     },
     async () => {
       const { articles } = await getMockData();
@@ -363,6 +448,39 @@ export async function getLatestIssue(): Promise<Issue | null> {
     return published[0] ?? null;
   };
 
+  // Middle-tier fallback: CMS is available but newsletter-issues endpoint
+  // doesn't return usable data. Fetch articles directly from /articles and
+  // compose an Issue using mock metadata + real CMS article data.
+  const composedFromArticles = async (): Promise<Issue | null> => {
+    if (!cmsAvailable()) return null;
+    try {
+      const data = await payloadFetch<Article>("/articles", {
+        "where[status][equals]": "published",
+        sort: "-publishDate",
+        depth: "2",
+        limit: "10",
+      });
+      if (!data.docs.length) return null;
+
+      // Use mock issue metadata as shell, but fill with real CMS articles
+      const mockIssue = await mockFallback();
+      if (!mockIssue) return null;
+
+      const articles: Issue["articles"] = data.docs.map((article, idx) => ({
+        article,
+        position: idx + 1,
+        isFlagship: idx === 0,
+      }));
+
+      return {
+        ...mockIssue,
+        articles,
+      };
+    } catch {
+      return null;
+    }
+  };
+
   return withFallback(
     async () => {
       // CMS collection is "newsletter-issues" with status "sent" for published
@@ -378,11 +496,19 @@ export async function getLatestIssue(): Promise<Issue | null> {
       const raw = data.docs[0];
       const issue = mapCmsIssue(raw);
       if (!issue || !issue.articles.length) {
+        // Newsletter-issues didn't work — try composing from CMS articles
+        const composed = await composedFromArticles();
+        if (composed) return composed;
         return mockFallback();
       }
       return issue;
     },
-    mockFallback,
+    async () => {
+      // CMS entirely unreachable — try composed, then full mock
+      const composed = await composedFromArticles();
+      if (composed) return composed;
+      return mockFallback();
+    },
   );
 }
 
