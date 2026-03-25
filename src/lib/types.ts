@@ -78,8 +78,8 @@ export interface IssueArticle {
 
 export interface Issue {
   id: string;
-  volume: number;
-  issueNumber: number;
+  volume: number | null;
+  issueNumber: number | null;
   slug: string;
   title: string;
   headline: string;
@@ -88,7 +88,7 @@ export interface Issue {
   publishDate: string;
   editorsLetter: {
     body: string;
-    author: Author;
+    author: Author | null;
   };
   articles: IssueArticle[];
   status: "draft" | "published";

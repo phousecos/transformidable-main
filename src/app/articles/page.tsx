@@ -70,8 +70,11 @@ export default async function ArchivePage() {
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-oxblood md:text-xs">
-                        Issue {String(issue.issueNumber).padStart(2, "0")} · Volume {issue.volume}
-                        {issue.season && <> · {issue.season}</>}
+                        {[
+                          issue.issueNumber != null ? `Issue ${String(issue.issueNumber).padStart(2, "0")}` : null,
+                          issue.volume != null ? `Volume ${issue.volume}` : null,
+                          issue.season || null,
+                        ].filter(Boolean).join(" · ")}
                       </p>
                       <h2 className="mt-2 font-serif text-2xl font-bold italic leading-snug text-obsidian md:text-3xl">
                         <Link href="/" className="transition-colors hover:text-oxblood">
