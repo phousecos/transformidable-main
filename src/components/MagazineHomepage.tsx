@@ -138,7 +138,7 @@ function CoverView({
 
         {/* Large decorative issue number */}
         <p
-          className="font-serif text-[64px] font-extralight leading-none text-parchment/10 md:text-[96px]"
+          className="font-serif text-[64px] font-bold leading-none text-parchment/20 md:text-[96px]"
           aria-hidden="true"
         >
           {issueNumber}
@@ -150,7 +150,7 @@ function CoverView({
         </p>
 
         {/* Headline */}
-        <h1 className="mt-6 max-w-xl font-serif text-3xl font-bold italic leading-tight text-parchment md:mt-8 md:text-[40px] md:leading-[1.15]">
+        <h1 className="mt-6 font-serif text-3xl font-bold italic leading-tight text-parchment md:mt-8 md:text-[40px] md:leading-[1.15]">
           {(issue.headline ?? "").split("\n").map((line, i) => (
             <span key={i}>
               {line}
@@ -342,7 +342,7 @@ function ThisIssueView({
         <div className="mt-4 h-[2px] bg-oxblood" />
 
         {/* Headline */}
-        <h2 className="mt-8 max-w-lg font-serif text-2xl font-bold italic leading-snug text-obsidian md:mt-10 md:text-[32px] md:leading-tight">
+        <h2 className="mt-8 font-serif text-2xl font-bold italic leading-snug text-obsidian md:mt-10 md:text-[32px] md:leading-tight">
           {(issue.headline ?? "").split("\n").map((line, i) => (
             <span key={i}>
               {line}
@@ -365,7 +365,7 @@ function ThisIssueView({
           <div className="mt-6 flex flex-col gap-4 md:mt-8 md:flex-row md:gap-8">
             {/* Large number */}
             <p
-              className="hidden font-serif text-[72px] font-extralight leading-none text-obsidian/8 md:block md:text-[96px]"
+              className="hidden font-serif text-[72px] font-bold leading-none text-obsidian/15 md:block md:text-[96px]"
               aria-hidden="true"
             >
               {String(flagship.position).padStart(2, "0")}
@@ -403,7 +403,7 @@ function ThisIssueView({
           {remaining.map((ia) => (
             <article key={ia.article.id}>
               <p
-                className="font-serif text-[36px] font-extralight leading-none text-obsidian/8 md:text-[48px]"
+                className="font-serif text-[36px] font-bold leading-none text-obsidian/15 md:text-[48px]"
                 aria-hidden="true"
               >
                 {String(ia.position).padStart(2, "0")}

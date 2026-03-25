@@ -292,6 +292,64 @@ export async function getBrandPillarSlugs(): Promise<string[]> {
 // Issues
 // ---------------------------------------------------------------------------
 
+// The CMS "newsletter-issues" collection has a different schema than the
+// frontend Issue type. This helper maps the CMS response to our Issue shape.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapCmsIssue(raw: any): Issue | null {
+  if (!raw) return null;
+
+  // CMS uses "featuredArticles" (relationship → Articles), our type uses "articles"
+  const featuredArticles: Article[] = Array.isArray(raw.featuredArticles)
+    ? raw.featuredArticles
+    : [];
+
+  const articles: Issue["articles"] = featuredArticles.map((article, idx) => ({
+    article,
+    position: idx + 1,
+    isFlagship: idx === 0, // first article is flagship
+  }));
+
+  // CMS uses "editorsNote" (richText), our type uses "editorsLetter"
+  const editorsNote = raw.editorsNote;
+  // editorsNote may be a string or richText object; normalize to string
+  const editorsBody =
+    typeof editorsNote === "string"
+      ? editorsNote
+      : editorsNote?.root?.children
+        ?.map((node: { children?: { text?: string }[] }) =>
+          node.children?.map((c) => c.text ?? "").join("") ?? "",
+        )
+        .join("\n\n") ?? "";
+
+  // Build a headline from the first article title if not present
+  const firstArticle = featuredArticles[0];
+  const headline = raw.headline ?? firstArticle?.title ?? "";
+  const subheadline =
+    raw.subheadline ??
+    (firstArticle
+      ? `This issue — ${firstArticle.title}`
+      : "");
+
+  return {
+    id: raw.id,
+    volume: raw.volume ?? 1,
+    issueNumber: raw.issueNumber ?? 1,
+    slug: raw.slug ?? `vol-1-issue-${String(raw.issueNumber ?? 1).padStart(2, "0")}`,
+    title: raw.title ?? headline,
+    headline,
+    subheadline,
+    season: raw.season ?? "",
+    publishDate: raw.issueDate ?? raw.publishDate ?? new Date().toISOString(),
+    editorsLetter: {
+      body: editorsBody,
+      author: firstArticle?.author ?? { id: "", name: "", bio: "", headshot: null, role: "", type: "staff", socialLinks: [], isActive: true },
+    },
+    articles,
+    status: raw.status === "sent" ? "published" : raw.status === "published" ? "published" : "draft",
+    tagline: raw.tagline,
+  };
+}
+
 export async function getLatestIssue(): Promise<Issue | null> {
   const mockFallback = async () => {
     const { issues } = await getMockData();
@@ -307,26 +365,19 @@ export async function getLatestIssue(): Promise<Issue | null> {
 
   return withFallback(
     async () => {
-      const data = await payloadFetch<Issue>("/issues", {
-        "where[status][equals]": "published",
-        sort: "-publishDate",
-        depth: "2",
-        limit: "1",
-      });
-      // If CMS returns empty docs or an issue missing critical fields
-      // (relationships not populated yet), fall back to mock data so the
-      // homepage still renders content.
-      const issue = data.docs[0];
-      if (
-        !issue ||
-        !issue.articles?.length ||
-        !issue.headline ||
-        !issue.editorsLetter?.body
-      ) {
-        console.warn(
-          "[payload] CMS returned incomplete issue data, using mock data. Fields present:",
-          issue ? Object.keys(issue).join(", ") : "no doc",
-        );
+      // CMS collection is "newsletter-issues" with status "sent" for published
+      const data = await payloadFetch<Record<string, unknown>>(
+        "/newsletter-issues",
+        {
+          "where[status][equals]": "sent",
+          sort: "-issueDate",
+          depth: "2",
+          limit: "1",
+        },
+      );
+      const raw = data.docs[0];
+      const issue = mapCmsIssue(raw);
+      if (!issue || !issue.articles.length) {
         return mockFallback();
       }
       return issue;
@@ -348,16 +399,20 @@ export async function getIssueBySlug(
 
   return withFallback(
     async () => {
-      const data = await payloadFetch<Issue>("/issues", {
-        "where[slug][equals]": slug,
-        "where[status][equals]": "published",
-        depth: "2",
-        limit: "1",
-      });
-      if (!data.docs.length) {
+      const data = await payloadFetch<Record<string, unknown>>(
+        "/newsletter-issues",
+        {
+          "where[slug][equals]": slug,
+          "where[status][equals]": "sent",
+          depth: "2",
+          limit: "1",
+        },
+      );
+      const issue = mapCmsIssue(data.docs[0]);
+      if (!issue) {
         return mockFallback();
       }
-      return data.docs[0];
+      return issue;
     },
     mockFallback,
   );
