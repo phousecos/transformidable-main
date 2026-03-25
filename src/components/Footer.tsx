@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -13,11 +14,14 @@ export default function Footer() {
       <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
           {/* Wordmark */}
-          <Link
-            href="/"
-            className="font-serif text-sm font-bold tracking-[0.25em] text-parchment"
-          >
-            TRANSFORMIDABLE
+          <Link href="/" className="block">
+            <Image
+              src="/primary.png"
+              alt="Transformidable"
+              width={180}
+              height={32}
+              className="h-6 w-auto"
+            />
           </Link>
 
           {/* Navigation links */}

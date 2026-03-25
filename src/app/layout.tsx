@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "Transformidable — Executive Insight for Technology Leaders",
   description:
     "The flagship publication for C-suite and executive leaders navigating technology-driven transformation. Articles, podcast, and insight on strategy, talent, and execution.",
+  icons: {
+    icon: "/Primary.png",
+    apple: "/Primary.png",
+  },
 };
 
 export default function RootLayout({
