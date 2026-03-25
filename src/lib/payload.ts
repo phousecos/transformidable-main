@@ -10,6 +10,7 @@
 import type {
   Article,
   BrandPillar,
+  Issue,
   PayloadResponse,
   PodcastEpisode,
 } from "./types";
@@ -283,6 +284,58 @@ export async function getBrandPillarSlugs(): Promise<string[]> {
     async () => {
       const { brandPillars } = await getMockData();
       return brandPillars.map((bp) => bp.slug);
+    },
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Issues
+// ---------------------------------------------------------------------------
+
+export async function getLatestIssue(): Promise<Issue | null> {
+  return withFallback(
+    async () => {
+      const data = await payloadFetch<Issue>("/issues", {
+        "where[status][equals]": "published",
+        sort: "-publishDate",
+        depth: "2",
+        limit: "1",
+      });
+      return data.docs[0] ?? null;
+    },
+    async () => {
+      const { issues } = await getMockData();
+      const published = issues
+        .filter((i) => i.status === "published")
+        .sort(
+          (a, b) =>
+            new Date(b.publishDate).getTime() -
+            new Date(a.publishDate).getTime(),
+        );
+      return published[0] ?? null;
+    },
+  );
+}
+
+export async function getIssueBySlug(
+  slug: string,
+): Promise<Issue | null> {
+  return withFallback(
+    async () => {
+      const data = await payloadFetch<Issue>("/issues", {
+        "where[slug][equals]": slug,
+        "where[status][equals]": "published",
+        depth: "2",
+        limit: "1",
+      });
+      return data.docs[0] ?? null;
+    },
+    async () => {
+      const { issues } = await getMockData();
+      return (
+        issues.find((i) => i.slug === slug && i.status === "published") ??
+        null
+      );
     },
   );
 }

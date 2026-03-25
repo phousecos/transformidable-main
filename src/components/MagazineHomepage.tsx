@@ -1,0 +1,427 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import type { Issue } from "@/lib/types";
+
+type Tab = "cover" | "editors-letter" | "this-issue";
+
+interface MagazineHomepageProps {
+  issue: Issue;
+}
+
+export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
+  const [activeTab, setActiveTab] = useState<Tab>("cover");
+
+  const volumeLabel = `VOL. ${"I".repeat(issue.volume)} · ISSUE ${String(issue.issueNumber).padStart(2, "0")}`;
+  const issueNumberFormatted = String(issue.issueNumber).padStart(2, "0");
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "cover", label: "COVER" },
+    { id: "editors-letter", label: "EDITOR\u2019S LETTER" },
+    { id: "this-issue", label: "THIS ISSUE" },
+  ];
+
+  const flagship = issue.articles.find((a) => a.isFlagship);
+  const remaining = issue.articles
+    .filter((a) => !a.isFlagship)
+    .sort((a, b) => a.position - b.position);
+
+  return (
+    <>
+      {/* Magazine Navigation Bar */}
+      <nav className="sticky top-0 z-50 bg-obsidian">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <Link
+            href="/"
+            className="font-serif text-sm font-bold tracking-[0.25em] text-parchment md:text-base"
+          >
+            TRANSFORMIDABLE
+          </Link>
+
+          {/* Desktop nav links */}
+          <div className="hidden items-center gap-6 sm:flex md:gap-8">
+            <Link
+              href="/articles"
+              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
+            >
+              Archive
+            </Link>
+            <Link
+              href="/about"
+              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
+            >
+              About
+            </Link>
+            <a
+              href="#newsletter"
+              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
+            >
+              Subscribe
+            </a>
+          </div>
+
+          {/* Volume/Issue label */}
+          <span className="hidden text-xs font-medium tracking-[0.15em] text-parchment/50 sm:inline">
+            {volumeLabel}
+          </span>
+        </div>
+
+        {/* Tab bar */}
+        <div className="border-t border-parchment/10">
+          <div className="mx-auto flex max-w-5xl">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 py-3 text-center text-xs font-medium tracking-[0.15em] transition-colors md:text-sm md:tracking-[0.2em] ${
+                  activeTab === tab.id
+                    ? "bg-parchment/10 text-gold"
+                    : "text-parchment/60 hover:text-parchment"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      {/* Tab Content */}
+      <main className="min-h-[60vh]">
+        {activeTab === "cover" && (
+          <CoverView
+            issue={issue}
+            issueNumber={issueNumberFormatted}
+            onNavigate={setActiveTab}
+          />
+        )}
+        {activeTab === "editors-letter" && (
+          <EditorsLetterView issue={issue} />
+        )}
+        {activeTab === "this-issue" && (
+          <ThisIssueView
+            issue={issue}
+            flagship={flagship}
+            remaining={remaining}
+          />
+        )}
+      </main>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Cover Tab
+// ---------------------------------------------------------------------------
+
+function CoverView({
+  issue,
+  issueNumber,
+  onNavigate,
+}: {
+  issue: Issue;
+  issueNumber: string;
+  onNavigate: (tab: Tab) => void;
+}) {
+  const flagship = issue.articles.find((a) => a.isFlagship);
+
+  return (
+    <section className="bg-obsidian">
+      <div className="mx-auto max-w-5xl px-6 pb-16 pt-12 md:pt-16 md:pb-20">
+        {/* Volume / Season / Publisher */}
+        <p className="mb-10 text-[10px] font-medium uppercase tracking-[0.25em] text-parchment/50 md:mb-14 md:text-xs">
+          Volume {issue.volume} &nbsp;·&nbsp; {issue.season} &nbsp;·&nbsp;
+          Powerhouse Industries
+        </p>
+
+        {/* Large decorative issue number */}
+        <p
+          className="font-serif text-[64px] font-extralight leading-none text-parchment/10 md:text-[96px]"
+          aria-hidden="true"
+        >
+          {issueNumber}
+        </p>
+
+        {/* Wordmark */}
+        <p className="mt-4 font-serif text-xs font-bold tracking-[0.25em] text-gold/80 md:text-sm">
+          TRANSFORMIDABLE
+        </p>
+
+        {/* Headline */}
+        <h1 className="mt-6 max-w-xl font-serif text-3xl font-bold italic leading-tight text-parchment md:mt-8 md:text-[40px] md:leading-[1.15]">
+          {issue.headline.split("\n").map((line, i) => (
+            <span key={i}>
+              {line}
+              {i === 0 && <br />}
+            </span>
+          ))}
+        </h1>
+
+        {/* Subheadline */}
+        <p className="mt-4 text-sm font-light text-parchment/50 md:text-base">
+          {issue.subheadline}
+        </p>
+
+        {/* Divider */}
+        <div className="mt-10 h-px w-16 bg-gold md:mt-14" />
+
+        {/* In This Issue */}
+        <p className="mt-8 text-[10px] font-medium uppercase tracking-[0.25em] text-parchment/50 md:text-xs">
+          In This Issue
+        </p>
+
+        <div className="mt-6 space-y-4">
+          {issue.articles
+            .sort((a, b) => a.position - b.position)
+            .map((ia) => (
+              <div key={ia.article.id} className="flex items-baseline gap-4">
+                <span className="w-6 shrink-0 text-right text-xs font-bold text-gold">
+                  {String(ia.position).padStart(2, "0")}
+                </span>
+                {ia.isFlagship && (
+                  <span className="text-xs text-gold" aria-label="Flagship">
+                    ★
+                  </span>
+                )}
+                <span
+                  className={`font-serif text-sm leading-snug md:text-base ${
+                    ia.isFlagship
+                      ? "font-semibold text-parchment"
+                      : "font-normal text-parchment/70"
+                  }`}
+                >
+                  {ia.article.title}
+                </span>
+              </div>
+            ))}
+        </div>
+
+        {/* Read This Issue CTA */}
+        <button
+          onClick={() => onNavigate("this-issue")}
+          className="mt-10 rounded-sm border border-gold/60 px-8 py-3 text-xs font-medium uppercase tracking-[0.2em] text-gold transition-colors hover:bg-gold/10"
+        >
+          Read This Issue →
+        </button>
+      </div>
+
+      {/* Footer bar */}
+      <div className="border-t border-parchment/10">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+          <p className="text-[10px] font-medium tracking-[0.15em] text-parchment/40 md:text-xs">
+            A publication of Powerhouse Industries
+          </p>
+          <p className="font-serif text-xs italic text-gold/60 md:text-sm">
+            {issue.season}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Editor's Letter Tab
+// ---------------------------------------------------------------------------
+
+function EditorsLetterView({ issue }: { issue: Issue }) {
+  const { editorsLetter } = issue;
+  const paragraphs = editorsLetter.body.split("\n\n");
+
+  // Find the blockquote paragraph (italic emphasis)
+  const blockquoteIndex = paragraphs.findIndex(
+    (p) => p.includes("That gap") || p.includes("crisis of this moment"),
+  );
+
+  return (
+    <section className="bg-parchment">
+      <div className="mx-auto max-w-3xl px-6 pb-16 pt-12 md:pt-16 md:pb-20">
+        {/* Section label */}
+        <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-oxblood md:text-xs">
+          From the Editor
+        </p>
+
+        {/* Gold rule */}
+        <div className="mt-4 h-[2px] w-16 bg-oxblood" />
+
+        {/* Letter body */}
+        <div className="mt-10 space-y-6 md:mt-14">
+          {paragraphs.map((paragraph, i) => {
+            if (i === blockquoteIndex) {
+              return (
+                <blockquote
+                  key={i}
+                  className="my-8 border-l-[3px] border-gold py-2 pl-6 md:my-10"
+                >
+                  <p className="font-serif text-lg italic leading-relaxed text-gold md:text-xl">
+                    {paragraph}
+                  </p>
+                </blockquote>
+              );
+            }
+            return (
+              <p
+                key={i}
+                className="font-serif text-lg leading-[1.8] text-obsidian md:text-xl"
+              >
+                {paragraph}
+              </p>
+            );
+          })}
+        </div>
+
+        {/* Divider */}
+        <div className="mt-12 h-px w-full bg-obsidian/10 md:mt-16" />
+
+        {/* Author attribution */}
+        <div className="mt-8">
+          <p className="text-sm font-semibold text-obsidian">
+            — {editorsLetter.author.name}
+          </p>
+          <p className="mt-1 text-xs text-obsidian/50">
+            {editorsLetter.author.role}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// This Issue Tab
+// ---------------------------------------------------------------------------
+
+function ThisIssueView({
+  issue,
+  flagship,
+  remaining,
+}: {
+  issue: Issue;
+  flagship: Issue["articles"][number] | undefined;
+  remaining: Issue["articles"];
+}) {
+  const categoryLabel = (pillars: { name: string }[]) => {
+    return pillars[0]?.name?.toUpperCase() ?? "EXECUTIVE LEADERSHIP";
+  };
+
+  return (
+    <section className="bg-parchment">
+      <div className="mx-auto max-w-5xl px-6 pb-16 pt-10 md:pt-14 md:pb-20">
+        {/* Header */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
+          <p className="font-serif text-sm font-bold tracking-[0.15em] text-oxblood md:text-base">
+            TRANSFORMIDABLE
+          </p>
+          <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-obsidian/40 md:text-xs">
+            Issue {String(issue.issueNumber).padStart(2, "0")} · Volume{" "}
+            {issue.volume}
+            <br className="sm:hidden" />
+            <span className="hidden sm:inline"> · </span>
+            {issue.season}
+          </p>
+        </div>
+
+        {/* Gold rule */}
+        <div className="mt-4 h-[2px] bg-oxblood" />
+
+        {/* Headline */}
+        <h2 className="mt-8 max-w-lg font-serif text-2xl font-bold italic leading-snug text-obsidian md:mt-10 md:text-[32px] md:leading-tight">
+          {issue.headline.split("\n").map((line, i) => (
+            <span key={i}>
+              {line}
+              {i === 0 && <br />}
+            </span>
+          ))}
+        </h2>
+
+        <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.25em] text-obsidian/50 md:text-xs">
+          {issue.subheadline.replace("This issue — ", "This issue — ").toUpperCase()}
+        </p>
+
+        {/* In This Issue */}
+        <p className="mt-10 text-[10px] font-medium uppercase tracking-[0.25em] text-oxblood md:mt-14 md:text-xs">
+          In This Issue
+        </p>
+
+        {/* Flagship article (full-width) */}
+        {flagship && (
+          <div className="mt-6 flex flex-col gap-4 md:mt-8 md:flex-row md:gap-8">
+            {/* Large number */}
+            <p
+              className="hidden font-serif text-[72px] font-extralight leading-none text-obsidian/8 md:block md:text-[96px]"
+              aria-hidden="true"
+            >
+              {String(flagship.position).padStart(2, "0")}
+            </p>
+
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <span className="rounded-sm border border-obsidian/20 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-obsidian/60 md:text-[10px]">
+                  Flagship
+                </span>
+                <span className="text-[9px] font-medium uppercase tracking-[0.2em] text-obsidian/40 md:text-[10px]">
+                  {categoryLabel(flagship.article.brandPillars)}
+                </span>
+              </div>
+              <h3 className="mt-3 font-serif text-xl font-semibold leading-snug text-obsidian md:text-2xl">
+                <Link
+                  href={`/articles/${flagship.article.slug}`}
+                  className="transition-colors hover:text-oxblood"
+                >
+                  {flagship.article.title}
+                </Link>
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-obsidian/60 md:text-base">
+                {flagship.article.excerpt}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="mt-8 h-px bg-obsidian/10 md:mt-10" />
+
+        {/* Remaining articles in responsive grid */}
+        <div className="mt-8 grid gap-8 md:mt-10 md:grid-cols-3 md:gap-6">
+          {remaining.map((ia) => (
+            <article key={ia.article.id}>
+              <p
+                className="font-serif text-[36px] font-extralight leading-none text-obsidian/8 md:text-[48px]"
+                aria-hidden="true"
+              >
+                {String(ia.position).padStart(2, "0")}
+              </p>
+              <p className="mt-2 text-[9px] font-medium uppercase tracking-[0.2em] text-obsidian/40 md:text-[10px]">
+                {categoryLabel(ia.article.brandPillars)}
+              </p>
+              <h3 className="mt-2 font-serif text-base font-semibold leading-snug text-obsidian md:text-lg">
+                <Link
+                  href={`/articles/${ia.article.slug}`}
+                  className="transition-colors hover:text-oxblood"
+                >
+                  {ia.article.title}
+                </Link>
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-obsidian/50 md:text-sm">
+                {ia.article.excerpt}
+              </p>
+            </article>
+          ))}
+        </div>
+
+        {/* Footer tagline */}
+        <div className="mt-14 flex items-center justify-between border-t border-obsidian/10 pt-4 md:mt-20">
+          <p className="text-[10px] font-medium tracking-[0.15em] text-obsidian/40 md:text-xs">
+            A publication of Powerhouse Industries
+          </p>
+          {issue.tagline && (
+            <p className="font-serif text-xs italic text-gold md:text-sm">
+              {issue.tagline}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
