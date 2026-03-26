@@ -164,10 +164,10 @@ function CoverView({
         {/* Wordmark */}
         <div className="mt-4">
           <Image
-            src="/primary.png"
+            src="/logo.png"
             alt="Transformidable"
-            width={200}
-            height={36}
+            width={400}
+            height={100}
             className="h-5 w-auto opacity-80 md:h-6"
           />
         </div>
@@ -343,10 +343,10 @@ function ThisIssueView({
         {/* Header */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
           <Image
-            src="/primary.png"
+            src="/logo.png"
             alt="Transformidable"
-            width={180}
-            height={32}
+            width={400}
+            height={100}
             className="h-5 w-auto brightness-0 md:h-6"
           />
           <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-obsidian/40 md:text-xs">
