@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Navbar from "@/components/Navbar";
+import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import SubNav from "@/components/reading-room/SubNav";
 import HeroSection from "@/components/reading-room/HeroSection";
@@ -35,7 +35,7 @@ export default async function ReadingRoomPage() {
 
   return (
     <>
-      <Navbar />
+      <SiteNav />
       <SubNav />
 
       <main>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SiteNav from "./SiteNav";
 import type { Issue, Article } from "@/lib/types";
 
 type View =
@@ -51,54 +52,10 @@ export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
 
   return (
     <>
-      {/* Magazine Navigation Bar */}
-      <nav className="sticky top-0 z-50 bg-obsidian">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link href="/" className="block">
-            <Image
-              src="/primary.png"
-              alt="Transformidable"
-              width={180}
-              height={32}
-              className="h-6 w-auto md:h-7"
-              priority
-            />
-          </Link>
+      <SiteNav />
 
-          {/* Desktop nav links */}
-          <div className="hidden items-center gap-6 sm:flex md:gap-8">
-            <Link
-              href="/articles"
-              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
-            >
-              Archive
-            </Link>
-            <Link
-              href="/about"
-              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
-            >
-              About
-            </Link>
-            <Link
-              href="/reading-room"
-              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
-            >
-              The Reading Room
-            </Link>
-            <a
-              href="#newsletter"
-              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
-            >
-              Subscribe
-            </a>
-          </div>
-
-          {/* Volume/Issue label */}
-          <span className="hidden text-xs font-medium tracking-[0.15em] text-parchment/50 sm:inline">
-            {volumeLabel}
-          </span>
-        </div>
-
+      {/* Magazine tab bar + breadcrumb */}
+      <div className="sticky top-[56px] z-40 bg-obsidian md:top-[60px]">
         {/* Tab bar */}
         <div className="border-t border-parchment/10">
           <div className="mx-auto flex max-w-5xl">
@@ -135,7 +92,7 @@ export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
             </div>
           </div>
         )}
-      </nav>
+      </div>
 
       {/* Content */}
       <main className="min-h-[60vh]">

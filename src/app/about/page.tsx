@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -74,7 +74,7 @@ const partnerBrands = [
 export default function AboutPage() {
   return (
     <>
-      <Navbar />
+      <SiteNav />
       <main>
         {/* Hero */}
         <div className="bg-obsidian">

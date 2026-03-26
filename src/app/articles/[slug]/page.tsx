@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import { getArticleBySlug, getArticleSlugs } from "@/lib/payload";
 
@@ -43,52 +43,23 @@ export default async function ArticlePage({
 
   return (
     <>
-      {/* Magazine-style navigation */}
-      <nav className="sticky top-0 z-50 bg-obsidian">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link href="/" className="block">
-            <Image
-              src="/primary.png"
-              alt="Transformidable"
-              width={180}
-              height={32}
-              className="h-6 w-auto md:h-7"
-              priority
-            />
+      <SiteNav />
+
+      {/* Breadcrumb back to current issue */}
+      <div className="sticky top-[56px] z-40 border-t border-parchment/10 bg-obsidian md:top-[60px]">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-2">
+          <Link
+            href="/"
+            className="text-[10px] font-medium uppercase tracking-[0.2em] text-gold transition-colors hover:text-parchment md:text-xs"
+          >
+            &larr; Current Issue
           </Link>
-
-          <div className="hidden items-center gap-6 sm:flex md:gap-8">
-            <Link
-              href="/articles"
-              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
-            >
-              Archive
-            </Link>
-            <Link
-              href="/about"
-              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
-            >
-              About
-            </Link>
-          </div>
+          <span className="text-parchment/20">|</span>
+          <span className="truncate text-[10px] font-medium tracking-[0.1em] text-parchment/50 md:text-xs">
+            {article.title}
+          </span>
         </div>
-
-        {/* Breadcrumb back to current issue */}
-        <div className="border-t border-parchment/10">
-          <div className="mx-auto flex max-w-5xl items-center gap-3 px-6 py-2">
-            <Link
-              href="/"
-              className="text-[10px] font-medium uppercase tracking-[0.2em] text-gold transition-colors hover:text-parchment md:text-xs"
-            >
-              &larr; Current Issue
-            </Link>
-            <span className="text-parchment/20">|</span>
-            <span className="truncate text-[10px] font-medium tracking-[0.1em] text-parchment/50 md:text-xs">
-              {article.title}
-            </span>
-          </div>
-        </div>
-      </nav>
+      </div>
 
       <main>
         {/* Article header */}
