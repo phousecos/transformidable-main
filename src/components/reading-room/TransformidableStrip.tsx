@@ -14,7 +14,7 @@ export default function TransformidableStrip({
               {feature.launchLabel}
             </p>
           )}
-          <h2 className="font-serif text-6xl font-bold text-parchment md:text-7xl">
+          <h2 className="font-serif text-6xl font-bold italic text-parchment md:text-7xl">
             Transformidable
           </h2>
           <p className="mt-1 text-sm text-parchment/80">

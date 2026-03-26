@@ -47,7 +47,7 @@ export default function HeroSection({ book }: { book: Book }) {
               </div>
             )}
 
-            <h2 className="font-serif text-3xl font-bold text-parchment md:text-4xl">
+            <h2 className="font-serif text-3xl font-bold italic text-parchment md:text-4xl">
               {book.title}
             </h2>
             <p className="mt-2 text-base text-parchment/70">{book.author}</p>
