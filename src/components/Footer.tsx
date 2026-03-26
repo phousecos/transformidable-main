@@ -16,10 +16,10 @@ export default function Footer() {
           {/* Wordmark */}
           <Link href="/" className="block">
             <Image
-              src="/primary.png"
+              src="/logo.png"
               alt="Transformidable"
-              width={180}
-              height={32}
+              width={400}
+              height={100}
               className="h-6 w-auto"
             />
           </Link>
