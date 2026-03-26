@@ -38,16 +38,16 @@ export default function Navbar() {
             Podcast
           </Link>
           <Link
-            href="/reading-room"
-            className="text-sm font-medium uppercase tracking-wider text-parchment/80 transition-colors hover:text-gold"
-          >
-            The Reading Room
-          </Link>
-          <Link
             href="/about"
             className="text-sm font-medium uppercase tracking-wider text-parchment/80 transition-colors hover:text-gold"
           >
             About
+          </Link>
+          <Link
+            href="/reading-room"
+            className="text-sm font-medium uppercase tracking-wider text-parchment/80 transition-colors hover:text-gold"
+          >
+            The Reading Room
           </Link>
         </div>
 
@@ -99,18 +99,18 @@ export default function Navbar() {
               Podcast
             </Link>
             <Link
-              href="/reading-room"
-              className="text-sm font-medium uppercase tracking-wider text-parchment/80"
-              onClick={() => setMobileOpen(false)}
-            >
-              The Reading Room
-            </Link>
-            <Link
               href="/about"
               className="text-sm font-medium uppercase tracking-wider text-parchment/80"
               onClick={() => setMobileOpen(false)}
             >
               About
+            </Link>
+            <Link
+              href="/reading-room"
+              className="text-sm font-medium uppercase tracking-wider text-parchment/80"
+              onClick={() => setMobileOpen(false)}
+            >
+              The Reading Room
             </Link>
             <a
               href="#newsletter"

@@ -38,6 +38,12 @@ export default function Footer() {
             >
               About
             </Link>
+            <Link
+              href="/reading-room"
+              className="text-xs font-medium uppercase tracking-[0.15em] text-parchment/50 transition-colors hover:text-gold"
+            >
+              The Reading Room
+            </Link>
             <a
               href="#newsletter"
               className="text-xs font-medium uppercase tracking-[0.15em] text-parchment/50 transition-colors hover:text-gold"

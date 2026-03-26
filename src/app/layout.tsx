@@ -6,8 +6,12 @@ export const metadata: Metadata = {
   description:
     "The flagship publication for C-suite and executive leaders navigating technology-driven transformation. Articles, podcast, and insight on strategy, talent, and execution.",
   icons: {
-    icon: "/Primary.png",
-    apple: "/Primary.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
 };
 
