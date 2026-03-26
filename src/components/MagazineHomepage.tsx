@@ -168,7 +168,7 @@ function CoverView({
             alt="Transformidable"
             width={800}
             height={200}
-            className="h-8 w-auto opacity-80 md:h-12"
+            className="h-16 w-auto opacity-80 md:h-20"
           />
         </div>
 
@@ -347,7 +347,7 @@ function ThisIssueView({
             alt="Transformidable"
             width={800}
             height={200}
-            className="h-8 w-auto brightness-0 md:h-12"
+            className="h-16 w-auto brightness-0 md:h-20"
           />
           <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-obsidian/40 md:text-xs">
             {issue.issueNumber != null && <>Issue {String(issue.issueNumber).padStart(2, "0")}</>}
