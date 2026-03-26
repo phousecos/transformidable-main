@@ -23,8 +23,8 @@ export default function SiteNav() {
           <Image
             src="/logo.png"
             alt="Transformidable"
-            width={400}
-            height={100}
+            width={800}
+            height={200}
             className="h-6 w-auto md:h-7"
             priority
           />

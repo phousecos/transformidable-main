@@ -166,8 +166,8 @@ function CoverView({
           <Image
             src="/logo.png"
             alt="Transformidable"
-            width={400}
-            height={100}
+            width={800}
+            height={200}
             className="h-5 w-auto opacity-80 md:h-6"
           />
         </div>
@@ -345,8 +345,8 @@ function ThisIssueView({
           <Image
             src="/logo.png"
             alt="Transformidable"
-            width={400}
-            height={100}
+            width={800}
+            height={200}
             className="h-5 w-auto brightness-0 md:h-6"
           />
           <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-obsidian/40 md:text-xs">
