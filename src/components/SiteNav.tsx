@@ -25,7 +25,7 @@ export default function SiteNav() {
             alt="Transformidable"
             width={800}
             height={200}
-            className="h-10 w-auto md:h-12"
+            className="h-16 w-auto md:h-20"
             priority
           />
         </Link>
