@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Navbar from "@/components/Navbar";
+import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import PodcastList from "@/components/PodcastList";
 import { getPodcastEpisodes } from "@/lib/payload";
@@ -15,7 +15,7 @@ export default async function PodcastPage() {
 
   return (
     <>
-      <Navbar />
+      <SiteNav />
       <main className="bg-parchment">
         <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
           <h1 className="font-serif text-4xl font-bold text-obsidian md:text-5xl">

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import PodcastSection from "@/components/PodcastSection";
 import { getEpisodeBySlug, getEpisodeSlugs } from "@/lib/payload";
@@ -42,7 +42,7 @@ export default async function EpisodePage({
 
   return (
     <>
-      <Navbar />
+      <SiteNav />
 
       {/* Reuse the existing audio-player section */}
       <PodcastSection episode={episode} />

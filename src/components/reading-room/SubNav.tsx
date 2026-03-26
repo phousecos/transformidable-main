@@ -10,8 +10,8 @@ const links = [
 
 export default function SubNav() {
   return (
-    <nav className="sticky top-[60px] z-40 border-b border-parchment/10 bg-obsidian">
-      <div className="mx-auto flex max-w-7xl gap-6 overflow-x-auto px-6 py-3">
+    <nav className="sticky top-[56px] z-40 border-b border-parchment/10 bg-obsidian md:top-[60px]">
+      <div className="mx-auto flex max-w-5xl gap-6 overflow-x-auto px-6 py-3">
         {links.map((link) => (
           <a
             key={link.href}

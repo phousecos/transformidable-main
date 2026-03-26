@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Navbar from "@/components/Navbar";
+import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import ArticleList from "@/components/ArticleList";
 import {
@@ -43,7 +43,7 @@ export default async function BrandPage({
 
   return (
     <>
-      <Navbar />
+      <SiteNav />
       <main className="bg-parchment">
         <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
           {/* Brand header */}
