@@ -82,7 +82,7 @@ export default function AboutPage() {
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
               About
             </span>
-            <h1 className="mt-4 font-serif text-3xl font-bold leading-tight text-parchment md:text-5xl md:leading-[1.1]">
+            <h1 className="mt-4 font-serif text-3xl font-bold italic leading-tight text-parchment md:text-5xl md:leading-[1.1]">
               Ideas worth leading with.
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-relaxed text-parchment/65 font-light">

@@ -262,7 +262,10 @@ function EditorsLetterView({ issue }: { issue: Issue }) {
       </section>
     );
   }
-  const paragraphs = editorsLetter.body.split("\n\n");
+
+  // Body may be plain text (mock data, newline-separated) or HTML (from CMS
+  // Lexical → normalizeBody). Detect which format we have and render accordingly.
+  const isHtml = editorsLetter.body.trim().startsWith("<");
 
   return (
     <section className="bg-parchment">
@@ -276,16 +279,23 @@ function EditorsLetterView({ issue }: { issue: Issue }) {
         <div className="mt-4 h-[2px] w-16 bg-oxblood" />
 
         {/* Letter body */}
-        <div className="mt-10 space-y-6 md:mt-14">
-          {paragraphs.map((paragraph, i) => (
-            <p
-              key={i}
-              className="font-serif text-lg leading-[1.8] text-obsidian md:text-xl"
-            >
-              {paragraph}
-            </p>
-          ))}
-        </div>
+        {isHtml ? (
+          <div
+            className="mt-10 space-y-6 font-serif text-lg leading-[1.8] text-obsidian md:mt-14 md:text-xl [&>p]:mb-6"
+            dangerouslySetInnerHTML={{ __html: editorsLetter.body }}
+          />
+        ) : (
+          <div className="mt-10 space-y-6 md:mt-14">
+            {editorsLetter.body.split("\n\n").map((paragraph, i) => (
+              <p
+                key={i}
+                className="font-serif text-lg leading-[1.8] text-obsidian md:text-xl"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
 
         {/* Divider */}
         <div className="mt-12 h-px w-full bg-obsidian/10 md:mt-16" />

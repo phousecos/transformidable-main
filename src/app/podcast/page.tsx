@@ -18,7 +18,7 @@ export default async function PodcastPage() {
       <SiteNav />
       <main className="bg-parchment">
         <div className="mx-auto max-w-7xl px-6 py-16 md:py-20">
-          <h1 className="font-serif text-4xl font-bold text-obsidian md:text-5xl">
+          <h1 className="font-serif text-4xl font-bold italic text-obsidian md:text-5xl">
             Podcast
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-obsidian/60 font-light">
