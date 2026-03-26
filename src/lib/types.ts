@@ -95,6 +95,41 @@ export interface Issue {
   tagline?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Reading Room
+// ---------------------------------------------------------------------------
+
+export type BookSection =
+  | "book-club"
+  | "career-leadership"
+  | "pmo-technology"
+  | "staff-picks";
+
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  coverImage: string;
+  editorialNote?: string;
+  section: BookSection;
+  illuminateBadge: boolean;
+  isCurrentSelection: boolean;
+  bookshopUrl?: string;
+  amazonUrl?: string;
+  payhipUrl?: string;
+  publishedDate: string;
+  status: "draft" | "published";
+}
+
+export interface TransformidableFeature {
+  mode: "pre-order" | "available-now";
+  tagline: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  coverImage: string;
+  launchLabel: string;
+}
+
 // Payload CMS paginated response envelope
 export interface PayloadResponse<T> {
   docs: T[];
