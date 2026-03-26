@@ -79,6 +79,12 @@ export default function MagazineHomepage({ issue }: MagazineHomepageProps) {
             >
               About
             </Link>
+            <Link
+              href="/reading-room"
+              className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
+            >
+              The Reading Room
+            </Link>
             <a
               href="#newsletter"
               className="text-xs font-medium uppercase tracking-[0.2em] text-parchment/70 transition-colors hover:text-gold"
