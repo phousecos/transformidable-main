@@ -146,8 +146,18 @@ function lexicalToHtml(node: LexicalNode): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeBody(body: any): string {
   if (typeof body === "string") return body;
-  if (body && typeof body === "object" && body.root) {
-    return lexicalToHtml(body.root);
+  if (body && typeof body === "object") {
+    if (body.root) {
+      return lexicalToHtml(body.root);
+    }
+    // Some Payload versions nest Lexical inside a wrapper
+    console.warn(
+      "[CMS] normalizeBody received object without .root — keys:",
+      Object.keys(body),
+    );
+    // Try common nesting patterns
+    if (body.content?.root) return lexicalToHtml(body.content.root);
+    if (body.json?.root) return lexicalToHtml(body.json.root);
   }
   return "";
 }
@@ -437,11 +447,36 @@ function mapCmsIssue(raw: any): Issue | null {
   }));
 
   // CMS uses "editorsNote" (richText), our type uses "editorsLetter"
-  const editorsBody = normalizeBody(raw.editorsNote);
+  // Try multiple possible field names to handle CMS naming variations.
+  const editorsRaw =
+    raw.editorsNote ??
+    raw.editors_note ??
+    raw.editorsLetter ??
+    raw.editors_letter ??
+    raw.editorNote ??
+    raw.editorLetter ??
+    raw.editor_note ??
+    raw.editor_letter ??
+    null;
+
+  if (!editorsRaw) {
+    console.warn(
+      `[CMS] Could not find editor's letter field. Available keys: ${Object.keys(raw).join(", ")}. ` +
+      "Expected one of: editorsNote, editors_note, editorsLetter, editors_letter, editorNote, editorLetter"
+    );
+  }
+
+  const editorsBody = normalizeBody(editorsRaw);
 
   // Resolve the editor's letter author: try the dedicated relationship field,
   // then fall back to the first article's author (common in early issues).
-  const editorsAuthor = raw.editorsNoteAuthor ?? featuredArticles[0]?.author ?? null;
+  const editorsAuthor =
+    raw.editorsNoteAuthor ??
+    raw.editors_note_author ??
+    raw.editorsLetterAuthor ??
+    raw.editors_letter_author ??
+    featuredArticles[0]?.author ??
+    null;
 
   return {
     id: raw.id,
