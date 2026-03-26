@@ -20,7 +20,7 @@ export default function Footer() {
               alt="Transformidable"
               width={800}
               height={200}
-              className="h-6 w-auto"
+              className="h-8 w-auto md:h-10"
             />
           </Link>
 
